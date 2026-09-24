@@ -1,120 +1,86 @@
-# Deploy Odoo + HubSpot Module on Render
+# Deploy Odoo + HubSpot on Render — FREE Tier
 
-This project runs **Odoo** with the custom **HubSpot Integration** module on the [Render](https://render.com) platform using Docker + PostgreSQL.
-
----
-
-## Prerequisites
-
-1. A free [Render account](https://dashboard.render.com/register)
-2. GitHub / GitLab account (to push this repo)
-3. HubSpot API credentials (Private App token or OAuth)
+This setup runs completely on Render’s **free plan**.
 
 ---
 
-## Quick Deploy (Blueprint)
+## Free Tier Limits (important)
 
-### 1. Push this folder to a Git repository
+| Resource        | Free limit                          | Impact |
+|-----------------|-------------------------------------|--------|
+| Web Service     | Spins down after ~15 min idle       | First request after sleep takes 30–60 s |
+| PostgreSQL      | Free DB expires after ~90 days      | Export data before expiry or upgrade |
+| Persistent Disk | **Not available** on free web       | Uploaded files / filestore reset on redeploy |
+| RAM             | ~512 MB                             | `workers = 0` (already set) |
+
+This is fine for **testing / demo**. Not recommended for production.
+
+---
+
+## Deploy in 5 steps
+
+### 1. Push to GitHub
 
 ```bash
 cd odoo-hubspot-render
 git init
 git add .
-git commit -m "Odoo HubSpot ready for Render"
-git remote add origin <your-repo-url>
+git commit -m "Odoo HubSpot free deploy"
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/odoo-hubspot.git
 git push -u origin main
 ```
 
-### 2. Deploy with Render Blueprint
+### 2. Create Blueprint on Render
 
-1. Go to [Render Dashboard](https://dashboard.render.com)
+1. Go to https://dashboard.render.com
 2. Click **New → Blueprint**
-3. Connect the Git repository that contains this project
-4. Render will detect `render.yaml` and create:
-   - Web Service (`odoo-hubspot`)
-   - PostgreSQL database (`odoo-db`)
-   - Persistent disk for Odoo data
+3. Connect your GitHub repo
+4. Render reads `render.yaml` and shows:
+   - Web Service `odoo-hubspot` (free)
+   - PostgreSQL `odoo-db` (free)
 5. Click **Apply**
 
-### 3. First Login
+### 3. Wait for first deploy
 
-- Open the service URL (e.g. `https://odoo-hubspot.onrender.com`)
-- Master password = value of `ADMIN_PASSWORD` (auto-generated — find it in Render → Environment)
-- Create your first database / admin user when prompted
+- Build takes 5–10 minutes
+- Watch the logs in the Render dashboard
 
-### 4. Install the HubSpot Module
+### 4. Open Odoo
 
-1. Go to **Apps** → remove "Apps" filter → search **Hubspot**
-2. Install **Odoo Hubspot Integration**
-3. Configure under **HubSpot → Instances**
+- Click the service URL (e.g. `https://odoo-hubspot-xxxx.onrender.com`)
+- Master password = value of `ADMIN_PASSWORD`  
+  (Render Dashboard → your service → Environment)
+- Create the database when prompted
 
----
+### 5. Install HubSpot module
 
-## Manual Deploy (without Blueprint)
-
-1. **Create PostgreSQL**  
-   New → PostgreSQL → name `odoo-db` → create
-
-2. **Create Web Service**  
-   New → Web Service → connect repo → Runtime: **Docker**
-
-3. **Environment Variables** (link from the database):
-
-| Key            | Value                          |
-|----------------|--------------------------------|
-| `ADMIN_PASSWORD` | strong password              |
-| `DB_HOST`      | from PostgreSQL Internal Host  |
-| `DB_PORT`      | 5432                           |
-| `DB_USER`      | from PostgreSQL                |
-| `DB_PASSWORD`  | from PostgreSQL                |
-| `DB_NAME`      | from PostgreSQL                |
-
-4. **Disk**  
-   Add disk → Mount path: `/var/lib/odoo` → Size: 10 GB
-
-5. Deploy
+1. Go to **Apps**
+2. Remove the “Apps” filter
+3. Search **Hubspot**
+4. Click **Install**
+5. Configure under **HubSpot → Instances** with your API token
 
 ---
 
-## Important Notes
+## After deploy tips
 
-| Topic              | Detail |
-|--------------------|--------|
-| **Odoo version**   | Dockerfile uses `odoo:18.0`. Module declares 20.0 — test compatibility or change the image tag when Odoo 20 official image is available. |
-| **Plan**           | Free / Starter is fine for testing. Use Standard+ for production (more RAM, always-on). |
-| **Cold starts**    | Free tier spins down after inactivity. First request may take 30–60 s. |
-| **Workers**        | Set to `0` on small instances (entrypoint already does this). |
-| **HubSpot API**    | After install, add your HubSpot Private App access token in the Instance form. |
+- **Cold start**: If the site is slow the first time, wait 30–60 seconds — free instances sleep.
+- **Keep alive (optional)**: Use a free cron service (e.g. cron-job.org) to ping your URL every 10 minutes so it doesn’t sleep.
+- **Database expiry**: Free Postgres is deleted after ~90 days of inactivity. Export a backup before that.
+- **Upgrade later**: When ready for production, change `plan: free` → `plan: starter` (or higher) in `render.yaml` and add a disk.
 
 ---
 
-## Local Test (optional)
-
-```bash
-docker build -t odoo-hubspot .
-docker run -p 8069:8069 \
-  -e ADMIN_PASSWORD=admin \
-  -e DB_HOST=host.docker.internal \
-  -e DB_PORT=5432 \
-  -e DB_USER=odoo \
-  -e DB_PASSWORD=odoo \
-  -e DB_NAME=odoo \
-  odoo-hubspot
-```
-
----
-
-## File Structure
+## File structure
 
 ```
 odoo-hubspot-render/
 ├── Dockerfile
 ├── entrypoint.sh
-├── render.yaml          ← Render Blueprint
+├── render.yaml          ← free plans
 ├── requirements.txt
-├── DEPLOY.md            ← this file
-├── config/
-│   └── odoo.conf
-└── addons/
-    └── hubspot/         ← your cleaned module
+├── DEPLOY.md
+├── config/odoo.conf
+└── addons/hubspot/
 ```

@@ -1,13 +1,11 @@
 # ============================================================
-# Odoo + HubSpot Integration — Render Deployment
+# Odoo + HubSpot Integration — Render Free Tier
 # ============================================================
-# Note: Official image currently at 18.0.
-# If you need exact Odoo 20, replace the base image later.
 FROM odoo:18.0
 
 USER root
 
-# Install system deps + HubSpot Python packages
+# Install HubSpot Python packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
         python3-pip \
     && pip3 install --no-cache-dir --break-system-packages \
@@ -30,14 +28,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy custom HubSpot module
 COPY ./addons /mnt/extra-addons
 
-# Copy entrypoint that builds odoo.conf from Render env vars
+# Copy fixed entrypoint
 COPY ./entrypoint.sh /entrypoint-custom.sh
 RUN chmod +x /entrypoint-custom.sh \
-    && chown -R odoo:odoo /mnt/extra-addons
+    && chown -R odoo:odoo /mnt/extra-addons \
+    && mkdir -p /etc/odoo && chown -R odoo:odoo /etc/odoo
 
 USER odoo
 
 EXPOSE 8069
 
+# Use our entrypoint; no extra CMD args
 ENTRYPOINT ["/entrypoint-custom.sh"]
-CMD ["odoo"]
+CMD []

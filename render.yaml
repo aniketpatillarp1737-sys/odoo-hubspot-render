@@ -1,17 +1,17 @@
-# Render Blueprint - Odoo HubSpot Integration
-# Docs: https://render.com/docs/blueprint-spec
+# Render Blueprint - Free Tier
+# Odoo + HubSpot Integration
 
 services:
   - type: web
     name: odoo-hubspot
     runtime: docker
-    plan: starter          # Change to standard/pro for production
+    plan: free                    # Free tier
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /web/login
     envVars:
       - key: ADMIN_PASSWORD
-        generateValue: true   # Auto-generates a secure password
+        generateValue: true
       - key: HOST
         value: 0.0.0.0
       - key: PORT
@@ -36,13 +36,12 @@ services:
         fromDatabase:
           name: odoo-db
           property: database
-    disk:
-      name: odoo-data
-      mountPath: /var/lib/odoo
-      sizeGB: 10
+    # Note: Free web services do NOT support persistent disks.
+    # Odoo filestore will reset on every redeploy / spin-down.
+    # For testing this is acceptable.
 
 databases:
   - name: odoo-db
-    plan: basic-256mb      # Upgrade for production
+    plan: free                    # Free PostgreSQL (expires after ~90 days)
     databaseName: odoo
     user: odoo
