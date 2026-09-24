@@ -1,0 +1,663 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_hubspot_instance_form" model="ir.ui.view">
+            <field name="name">hubspot.instance.form</field>
+            <field name="model">hubspot.instance</field>
+            <field name="arch" type="xml">
+                <!-- Instance overview layout (reference design); all original fields and buttons kept ######-->
+                <form string="Hubspot Instance" class="o_hs_instance_form">
+                    <sheet>
+                        <field name="write_date" invisible="1"/>
+                        <field name="active" invisible="1"/>
+
+                        <!-- Hero card: instance identity (left) and connection health (right) ######-->
+                        <div class="o_hs_hero">
+                            <div class="o_hs_hero_main">
+                                <img src="/hubspot/static/description/icon.png" class="o_hs_hero_logo" alt="HubSpot"/>
+                                <div class="o_hs_hero_info">
+                                    <div class="oe_title mb-1">
+                                        <h1><field name="name" placeholder="e.g. HubSpot Production"/></h1>
+                                    </div>
+                                    <!-- Same action_active_inactive toggle as the old button box ######-->
+                                    <button class="o_hs_chip o_hs_chip_success" name="action_active_inactive" type="object"
+                                            invisible="active == False" help="Set as Inactive">
+                                        <i class="oi me-1" data-icon="check_circle"/>Active
+                                    </button>
+                                    <button class="o_hs_chip o_hs_chip_muted" name="action_active_inactive" type="object"
+                                            invisible="active == True" help="Set as Active">
+                                        <i class="oi me-1" data-icon="cancel"/>Inactive
+                                    </button>
+                                    <div class="o_hs_hero_fields">
+                                        <div class="o_hs_hero_field">
+                                            <label for="hubspot_app_key" string="HubSpot App ID"/>
+                                            <field name="hubspot_app_key" password="True" nolabel="1"/>
+                                        </div>
+                                        <div class="o_hs_hero_field">
+                                            <label for="default_instance"/>
+                                            <field name="default_instance" widget="boolean_toggle" nolabel="1"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="o_hs_hero_status">
+                                <div class="o_hs_status_icon ok" invisible="connection_status != 'connected'"><i class="oi" data-icon="check"/></div>
+                                <div class="o_hs_status_icon bad" invisible="connection_status not in ('invalid', 'failed')"><i class="oi" data-icon="close"/></div>
+                                <div class="o_hs_status_icon idle" invisible="connection_status not in ('not_tested', False)"><i class="oi" data-icon="help"/></div>
+                                <div class="flex-grow-1">
+                                    <div class="o_hs_status_title ok" invisible="connection_status != 'connected'">Connected</div>
+                                    <div class="o_hs_status_title bad" invisible="connection_status != 'invalid'">Invalid Credentials</div>
+                                    <div class="o_hs_status_title bad" invisible="connection_status != 'failed'">Connection Failed</div>
+                                    <div class="o_hs_status_title idle" invisible="connection_status not in ('not_tested', False)">Not Tested Yet</div>
+                                    <div class="o_hs_status_sub" invisible="connection_status != 'connected'">Connection is healthy</div>
+                                    <div class="o_hs_status_sub" invisible="connection_status not in ('invalid', 'failed')">Check the App ID / private app token</div>
+                                    <div class="o_hs_status_sub" invisible="connection_status not in ('not_tested', False)">Run a connection test to verify the token</div>
+                                    <div class="o_hs_status_checked" invisible="not last_connection_check">
+                                        Last checked <field name="last_connection_check" readonly="1" class="d-inline"/>
+                                    </div>
+                                </div>
+                                <button name="action_test_connection" type="object" class="btn o_hs_btn_soft" icon="autorenew" string="Test Connection"/>
+                            </div>
+                        </div>
+
+                        <!-- KPI cards: HubSpot-linked records and records synced today ######-->
+                        <widget name="hubspot_instance_overview" mode="kpis"/>
+
+                        <notebook colspan="4">
+                            <!-- Overview tab: settings, actions, quick actions, activity, connection ######-->
+                            <page name="hubspot_overview" string="Overview">
+                                <div class="o_hs_grid">
+                                    <div class="o_hs_col">
+                                        <div class="o_hs_card">
+                                            <div class="o_hs_card_title"><i class="oi me-2" data-icon="tune"/>Synchronization Settings</div>
+                                            <div class="o_hs_card_sub">Choose what is imported from and exported to HubSpot</div>
+                                            <div class="o_hs_settings">
+                                                <div class="o_hs_setting_box">
+                                                    <div class="o_hs_setting_head"><i class="oi me-2" data-icon="person"/>Contacts</div>
+                                                    <div class="o_hs_toggle_row"><label for="hubspot_is_import_contacts"/><field name="hubspot_is_import_contacts" widget="boolean_toggle" nolabel="1"/></div>
+                                                    <div class="o_hs_toggle_row"><label for="hubspot_is_export_contacts"/><field name="hubspot_is_export_contacts" widget="boolean_toggle" nolabel="1"/></div>
+                                                </div>
+                                                <div class="o_hs_setting_box">
+                                                    <div class="o_hs_setting_head"><i class="oi me-2" data-icon="business"/>Companies</div>
+                                                    <div class="o_hs_toggle_row"><label for="hubspot_is_import_company"/><field name="hubspot_is_import_company" widget="boolean_toggle" nolabel="1"/></div>
+                                                    <div class="o_hs_toggle_row"><label for="hubspot_is_export_company"/><field name="hubspot_is_export_company" widget="boolean_toggle" nolabel="1"/></div>
+                                                </div>
+                                                <div class="o_hs_setting_box">
+                                                    <div class="o_hs_setting_head"><i class="oi me-2" data-icon="handshake"/>Deals</div>
+                                                    <div class="o_hs_toggle_row"><label for="hubspot_is_import_deals"/><field name="hubspot_is_import_deals" widget="boolean_toggle" nolabel="1"/></div>
+                                                    <div class="o_hs_toggle_row"><label for="hubspot_is_export_deals"/><field name="hubspot_is_export_deals" widget="boolean_toggle" nolabel="1"/></div>
+                                                </div>
+                                                <div class="o_hs_setting_box">
+                                                    <div class="o_hs_setting_head"><i class="oi me-2" data-icon="inventory_2"/>Products &amp; Quotes</div>
+                                                    <div class="o_hs_toggle_row"><label for="hubspot_is_import_products"/><field name="hubspot_is_import_products" widget="boolean_toggle" nolabel="1"/></div>
+                                                    <div class="o_hs_toggle_row"><label for="hubspot_is_import_quotes"/><field name="hubspot_is_import_quotes" widget="boolean_toggle" nolabel="1"/></div>
+                                                </div>
+                                                <div class="o_hs_setting_box o_hs_setting_wide">
+                                                    <div class="o_hs_setting_head"><i class="oi me-2" data-icon="mail"/>Engagements</div>
+                                                    <div class="o_hs_toggle_grid">
+                                                        <div class="o_hs_toggle_row"><label for="hubspot_is_import_notes"/><field name="hubspot_is_import_notes" widget="boolean_toggle" nolabel="1"/></div>
+                                                        <div class="o_hs_toggle_row"><label for="hubspot_is_import_email"/><field name="hubspot_is_import_email" widget="boolean_toggle" nolabel="1"/></div>
+                                                        <div class="o_hs_toggle_row"><label for="hubspot_is_import_log_meeting"/><field name="hubspot_is_import_log_meeting" widget="boolean_toggle" nolabel="1"/></div>
+                                                        <div class="o_hs_toggle_row"><label for="hubspot_is_import_log_email"/><field name="hubspot_is_import_log_email" widget="boolean_toggle" nolabel="1"/></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="o_hs_card">
+                                            <widget name="hubspot_instance_overview" mode="activity" entity="all" limit="8"
+                                                    title="Recent Synchronization Activity" subtitle="Latest synced records and sync events"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="o_hs_col">
+                                        <div class="o_hs_card">
+                                            <div class="o_hs_card_title"><i class="oi me-2" data-icon="swap_horiz"/>Synchronization Actions</div>
+                                            <div class="o_hs_card_sub">Run a sync now (enabled in Synchronization Settings)</div>
+                                            <button name="action_import_contacts" type="object" class="o_hs_action_row o_hs_action_primary" invisible="hubspot_is_import_contacts == False">
+                                                <i class="oi o_hs_action_icon" data-icon="cloud_download"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Import Contacts</span><span class="o_hs_action_desc">Import contacts from HubSpot</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <button name="action_update_contacts" type="object" class="o_hs_action_row" invisible="hubspot_is_import_contacts == False">
+                                                <i class="oi o_hs_action_icon" data-icon="autorenew"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Update Contacts</span><span class="o_hs_action_desc">Update existing contacts from HubSpot</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <button name="action_export_contacts" type="object" class="o_hs_action_row" invisible="hubspot_is_export_contacts == False">
+                                                <i class="oi o_hs_action_icon" data-icon="cloud_upload"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Export Contacts</span><span class="o_hs_action_desc">Send Odoo contacts to HubSpot</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <button name="action_import_companies" type="object" class="o_hs_action_row" invisible="hubspot_is_import_company == False">
+                                                <i class="oi o_hs_action_icon" data-icon="business"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Import Companies</span><span class="o_hs_action_desc">Import companies from HubSpot</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <button name="action_export_companies" type="object" class="o_hs_action_row" invisible="hubspot_is_export_company == False">
+                                                <i class="oi o_hs_action_icon" data-icon="cloud_upload"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Export Companies</span><span class="o_hs_action_desc">Send Odoo companies to HubSpot</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <button name="action_import_deals" type="object" class="o_hs_action_row" invisible="hubspot_is_import_deals == False">
+                                                <i class="oi o_hs_action_icon" data-icon="handshake"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Import Deals</span><span class="o_hs_action_desc">Import deals from HubSpot</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <button name="action_export_deals" type="object" class="o_hs_action_row" invisible="hubspot_is_export_deals == False">
+                                                <i class="oi o_hs_action_icon" data-icon="cloud_upload"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Export Deals</span><span class="o_hs_action_desc">Send Odoo deals to HubSpot</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <button name="action_import_products" type="object" class="o_hs_action_row" invisible="hubspot_is_import_products == False">
+                                                <i class="oi o_hs_action_icon" data-icon="inventory_2"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Import Products</span><span class="o_hs_action_desc">Import products from HubSpot</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <button name="action_import_quotes" type="object" class="o_hs_action_row" invisible="hubspot_is_import_quotes == False">
+                                                <i class="oi o_hs_action_icon" data-icon="receipt_long"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Import Quotes</span><span class="o_hs_action_desc">Import quotes from HubSpot</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <button name="action_import_notes" type="object" class="o_hs_action_row" invisible="hubspot_is_import_notes == False">
+                                                <i class="oi o_hs_action_icon" data-icon="sticky_note_2"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Import Notes</span><span class="o_hs_action_desc">Import notes from HubSpot</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <button name="action_import_email" type="object" class="o_hs_action_row" invisible="hubspot_is_import_email == False">
+                                                <i class="oi o_hs_action_icon" data-icon="mail"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Import Emails</span><span class="o_hs_action_desc">Import emails from HubSpot</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <button name="action_import_log_meeting" type="object" class="o_hs_action_row" invisible="hubspot_is_import_log_meeting == False">
+                                                <i class="oi o_hs_action_icon" data-icon="schedule"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Import Log Meetings</span><span class="o_hs_action_desc">Import logged meetings from HubSpot</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <button name="action_import_log_email" type="object" class="o_hs_action_row" invisible="hubspot_is_import_log_email == False">
+                                                <i class="oi o_hs_action_icon" data-icon="mail"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Import Log Emails</span><span class="o_hs_action_desc">Import logged emails from HubSpot</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <div class="o_hs_hint"
+                                                 invisible="hubspot_is_import_contacts or hubspot_is_export_contacts or hubspot_is_import_company or hubspot_is_export_company or hubspot_is_import_deals or hubspot_is_export_deals or hubspot_is_import_products or hubspot_is_import_quotes or hubspot_is_import_notes or hubspot_is_import_email or hubspot_is_import_log_meeting or hubspot_is_import_log_email">
+                                                <i class="oi me-2" data-icon="info"/>Turn on an import or export in Synchronization Settings to see its action here.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="o_hs_col">
+                                        <div class="o_hs_card">
+                                            <div class="o_hs_card_title"><i class="oi me-2" data-icon="speed"/>Quick Actions</div>
+                                            <div class="o_hs_card_sub">Common tasks for this instance</div>
+                                            <button name="action_import_hubspot_stages" type="object" class="o_hs_action_row">
+                                                <i class="oi o_hs_action_icon" data-icon="view_kanban"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Import HubSpot Stages</span><span class="o_hs_action_desc">Sync deal pipelines and stages</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <button name="action_import_contact_fields" type="object" class="o_hs_action_row" invisible="hubspot_app_key == False">
+                                                <i class="oi o_hs_action_icon" data-icon="list_alt"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Import Contact Fields</span><span class="o_hs_action_desc">Load HubSpot contact properties for mapping</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <button name="action_import_company_fields" type="object" class="o_hs_action_row">
+                                                <i class="oi o_hs_action_icon" data-icon="list_alt"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Import Company Fields</span><span class="o_hs_action_desc">Load HubSpot company properties for mapping</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <button name="action_import_deals_fields" type="object" class="o_hs_action_row">
+                                                <i class="oi o_hs_action_icon" data-icon="list_alt"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">Import Deals Fields</span><span class="o_hs_action_desc">Load HubSpot deal properties for mapping</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                            <button name="action_open_logger_dashboard" type="object" class="o_hs_action_row">
+                                                <i class="oi o_hs_action_icon" data-icon="history"/>
+                                                <span class="o_hs_action_text"><span class="o_hs_action_title">View Logs</span><span class="o_hs_action_desc">Open the HubSpot Logger dashboard</span></span>
+                                                <i class="oi o_hs_action_chevron" data-icon="chevron_right"/>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </page>
+                            <page name='hubspot_contacts' string="Contacts"
+                                  invisible="active == False">
+                                <!-- Settings and actions are shown once on the Overview tab ######-->
+                                <group col="4" invisible="1">
+                                    <field name="modifiedDateForContact" invisible="1"/>
+                                    <field name="hubspot_is_import_contacts" widget="boolean_toggle"/>
+                                    <field name="all_contact" invisible="1"/>
+                                    <field name="hubspot_is_export_contacts" widget="boolean_toggle"/>
+                                </group>
+                                <group invisible="1">
+                                    <button name="action_import_contacts"
+                                            invisible="hubspot_is_import_contacts == False"
+                                            class="oe_highlight" string="Import Contacts"
+                                            type="object" icon="cloud_download"/>
+
+                                    <button name="action_update_contacts"
+                                            invisible="hubspot_is_import_contacts == False"
+                                            class="oe_highlight" string="Update Contacts"
+                                            type="object" icon="cloud_download"/>
+                                    <button name="action_export_contacts"
+                                            invisible="hubspot_is_export_contacts == False"
+                                            class="oe_highlight" string="Export Contacts"
+                                            type="object" icon="cloud_upload"/>
+                                    <!--
+                                    <button name="action_import_skip_contacts"
+                                            invisible="hubspot_is_import_contacts == False"
+                                            class="oe_highlight"
+                                            string="Import Skipped Contacts" type="object" icon="cloud_download"/>
+                                            -->
+                                </group>
+                                <!--
+                                <group invisible="hubspot_app_key == False">
+                                    <field name="contact_field_mapping">
+                                        <list editable="bottom">
+                                            <field name="odoo_fields" required="1"/>
+                                            <field name="hubspot_fields"
+                                                   domain="[('hubspot_instance_id','=',parent.id),('hubspot_compute', '=', False),('hubspot_readonly', '=', False),('field_type', '!=', 'calculation_equation')]"
+                                                   required="1"/>
+                                        </list>
+                                    </field>
+                                </group>
+                                <group invisible="hubspot_app_key == False">
+                                    <button name="action_import_contact_fields" type="object" icon="cloud_download"
+                                            class="oe_highlight" string="Import Contact Fields"/>
+
+                                </group> -->
+                                <!-- Recently synced contacts with record details ######-->
+                                <div class="o_hs_card mt-3">
+                                    <widget name="hubspot_instance_overview" mode="activity" entity="contacts" limit="10"
+                                            title="Recently Synced Contacts" subtitle="Each synced record with its HubSpot ID and sync action"/>
+                                </div>
+                            </page>
+                            <page name='hubspot_companies' string="Companies"
+                                  invisible="active == False">
+                                <!-- Settings and actions are shown once on the Overview tab ######-->
+                                <group col="4" invisible="1">
+                                    <!-- <field name="hubspot_sync_companies"/> -->
+                                    <field name="modifiedDateForCompany" invisible="1"/>
+                                    <field name="hubspot_is_import_company" widget="boolean_toggle"
+                                    />
+                                    <field name="all_companies" invisible="1"/>
+                                    <field name="hubspot_is_export_company" widget="boolean_toggle"
+                                    />
+                                </group>
+                                <group invisible="1">
+                                    <button name="action_import_companies" class="oe_highlight"
+                                            invisible="hubspot_is_import_company == False"
+                                            string="Import Companies"
+                                            type="object" icon="cloud_download"/>
+                                    <!--
+                                    <button name="action_update_companies"
+                                            invisible=" hubspot_is_import_company == False"
+                                            class="oe_highlight" string="Update Companies"
+                                            type="object" icon="cloud_download"/> -->
+
+                                    <button name="action_export_companies" class="oe_highlight"
+                                            invisible="hubspot_is_export_company == False"
+                                            string="Export Companies"
+                                            type="object" icon="cloud_upload"/>
+                                    <!--
+                                    <button name="action_import_skip_companies" class="oe_highlight"
+                                            invisible=" hubspot_is_import_company == False"
+                                            string="Import Skipped Companies" type="object" icon="cloud_download"/>
+                                    -->
+                                </group>
+                                <!--
+                                <group invisible="hubspot_app_key == False">
+                                    <field name="company_field_mapping">
+                                        <list editable="bottom">
+                                            <field name="odoo_fields" required="1"/>
+                                            <field name="hubspot_fields"
+                                                   domain="[('hubspot_instance_id','=',parent.id),('hubspot_compute', '=', False),('hubspot_readonly', '=', False),('field_type', '!=', 'calculation_equation')]"
+                                                   required="1"/>
+                                        </list>
+                                    </field>
+                                </group>
+                                <group invisible="hubspot_app_key == False">
+                                    <button name="action_import_company_fields" type="object" icon="cloud_download"
+                                            class="oe_highlight" string="Import Company Fields"/>
+                                </group> -->
+                                <!-- Recently synced companies with record details ######-->
+                                <div class="o_hs_card mt-3">
+                                    <widget name="hubspot_instance_overview" mode="activity" entity="companies" limit="10"
+                                            title="Recently Synced Companies" subtitle="Each synced record with its HubSpot ID and sync action"/>
+                                </div>
+                            </page>
+                            <page name='hubspot_deals' string="Deals" invisible="active == False">
+                                <!-- Settings and actions are shown once on the Overview tab ######-->
+                                <group col="4" invisible="1">
+                                    <!-- <field name="hubspot_sync_deals"/> -->
+                                    <field name="modifiedDateForDeals" invisible="1"/>
+                                    <field name="hubspot_is_import_deals" widget="boolean_toggle"
+                                    />
+                                    <field name="all_deals" invisible="1"/>
+                                    <field name="hubspot_is_export_deals" widget="boolean_toggle"
+                                    />
+                                </group>
+                                <group invisible="1">
+                                    <button name="action_import_hubspot_stages"
+                                            class="oe_highlight" string="Import Hubspot Stages"
+                                            type="object" icon="cloud_download"/>
+                                    <button name="action_import_deals"
+                                            invisible=" hubspot_is_import_deals == False"
+                                            class="oe_highlight" string="Import Deals"
+                                            type="object" icon="cloud_download"/>
+                                    <button name="action_export_deals"
+                                            invisible=" hubspot_is_export_deals == False"
+                                            class="oe_highlight" string="Export Deals"
+                                            type="object" icon="cloud_upload"/>
+                                    <!--
+                                    <button name="action_import_skip_deals"
+                                            invisible=" hubspot_is_import_deals == False"
+                                            class="oe_highlight"
+                                            string="Import Skipped Deals" type="object" icon="cloud_download"/>
+                                            -->
+                                </group>
+                                <!--
+                                <group invisible="hubspot_app_key == False">
+                                    <field name="deals_field_mapping">
+                                        <list editable="bottom">
+                                            <field name="odoo_fields" required="1"/>
+                                            <field name="hubspot_fields"
+                                                   domain="[('hubspot_instance_id','=',parent.id),('hubspot_compute', '=', False),('hubspot_readonly', '=', False),('field_type', '!=', 'calculation_equation')]"
+                                                   required="1"/>
+                                        </list>
+                                    </field>
+                                </group>
+                                <group invisible="hubspot_app_key == False">
+                                    <button name="action_import_deals_fields" type="object" icon="cloud_download"
+                                            class="oe_highlight" string="Import Deals Fields"/>
+                                </group> -->
+                                <!-- Recently synced deals with record details ######-->
+                                <div class="o_hs_card mt-3">
+                                    <widget name="hubspot_instance_overview" mode="activity" entity="deals" limit="10"
+                                            title="Recently Synced Deals" subtitle="Each synced record with its HubSpot ID and sync action"/>
+                                </div>
+                            </page>
+                            <page name='hubspot_task' string="Task" invisible="1">
+                                <group col="4">
+                                    <!-- <field name="hubspot_sync_task"/> -->
+                                    <field name="modifiedDateForTask" invisible="1"/>
+                                    <field name="hubspot_is_import_task" widget="boolean_toggle"
+                                    />
+                                    <field name="all_task" invisible="1"/>
+                                    <field name="hubspot_is_export_task" widget="boolean_toggle"
+                                    />
+                                </group>
+                                <group>
+                                    <button name="action_import_task"
+                                            invisible=" hubspot_is_import_task == False"
+                                            class="oe_highlight" string="Import Task"
+                                            type="object" icon="cloud_download"/>
+                                    <button name="action_export_task"
+                                            invisible=" hubspot_is_export_task == False"
+                                            class="oe_highlight" string="Export Task"
+                                            type="object" icon="cloud_upload"/>
+                                </group>
+                            </page>
+
+
+                            <page name='hubspot_products' string="Products" invisible="active == False">
+                                <!-- Settings and actions are shown once on the Overview tab ######-->
+                                <group col="4" invisible="1">
+                                    <!-- <field name="hubspot_sync_products"/> -->
+                                    <field name="modifiedDateForProducts" invisible="1"/>
+                                    <field name="hubspot_is_import_products" widget="boolean_toggle"
+                                    />
+
+                                </group>
+                                <group invisible="1">
+                                    <button name="action_import_products"
+
+                                            invisible="hubspot_is_import_products == False"
+                                            class="oe_highlight" string="Import Products"
+                                            type="object" icon="cloud_download"/>
+
+
+                                </group>
+                                <!-- Recently synced products with record details ######-->
+                                <div class="o_hs_card mt-3">
+                                    <widget name="hubspot_instance_overview" mode="activity" entity="products" limit="10"
+                                            title="Recent Product Sync Activity" subtitle="Each synced record with its HubSpot ID and sync action"/>
+                                </div>
+                            </page>
+
+
+                            <page name='hubspot_quotes' string="Quotes" invisible="active == False">
+                                <!-- Settings and actions are shown once on the Overview tab ######-->
+                                <group col="4" invisible="1">
+                                    <!-- <field name="hubspot_sync_quotes"/> -->
+                                    <field name="modifiedDateForQuotes" invisible="1"/>
+                                    <field name="hubspot_is_import_quotes" widget="boolean_toggle"
+                                    />
+
+
+                                </group>
+                                <group invisible="1">
+                                    <button name="action_import_quotes"
+
+                                            invisible="hubspot_is_import_quotes == False"
+                                            class="oe_highlight" string="Import Quotes"
+                                            type="object" icon="cloud_download"/>
+
+
+                                </group>
+                                <!-- Recently synced quotes with record details ######-->
+                                <div class="o_hs_card mt-3">
+                                    <widget name="hubspot_instance_overview" mode="activity" entity="quotes" limit="10"
+                                            title="Recent Quote Sync Activity" subtitle="Each synced record with its HubSpot ID and sync action"/>
+                                </div>
+                            </page>
+                            <page string="Logs" invisible="active == False">
+                                <!-- Recently synced notes, emails, meetings and activities ######-->
+                                <div class="o_hs_card mb-3">
+                                    <widget name="hubspot_instance_overview" mode="activity" entity="engagements" limit="10"
+                                            title="Recent Engagement Sync Activity" subtitle="Notes, emails, meetings and activities"/>
+                                </div>
+                                <!-- Engagement toggles/actions are shown once on the Overview tab ######-->
+                                <notebook invisible="1">
+
+                                    <page name='hubspot_log_call' string=" Log Calls" invisible="1">
+                                        <group col="4">
+                                            <!-- <field name="hubspot_sync_calls"/> -->
+                                            <field name="modifiedDateForCall" invisible="1"/>
+                                            <field name="hubspot_is_import_calls" widget="boolean_toggle"
+                                            />
+                                            <field name="all_call" invisible="1"/>
+
+                                        </group>
+                                        <group>
+                                            <button name="action_import_call"
+                                                    invisible=" hubspot_is_import_calls == False"
+                                                    class="oe_highlight" string="Import Log Calls"
+                                                    type="object" icon="cloud_download"/>
+
+                                        </group>
+                                    </page>
+
+                                    <page name='hubspot_note' string="Note" invisible="active == False">
+                                        <group col="4">
+                                            <!-- <field name="hubspot_sync_notes"/> -->
+                                            <field name="modifiedDateForNotes" invisible="1"/>
+                                            <field name="hubspot_is_import_notes" widget="boolean_toggle"
+                                            />
+                                            <field name="all_notes" invisible="1"/>
+                                            <field name="hubspot_is_export_notes"
+                                            invisible="1"/>
+                                        </group>
+                                        <group>
+                                            <button name="action_import_notes"
+                                                    invisible=" hubspot_is_import_notes == False"
+                                                    class="oe_highlight" string="Import Note"
+                                                    type="object" icon="cloud_download"/>
+                                            <button name="action_export_notes"
+                                                    invisible="1"
+                                                    class="oe_highlight" string="Export Note"
+                                                    type="object" icon="cloud_upload"/>
+                                            <button name="action_import_skip_notes"
+                                                    invisible="1"
+                                                    class="oe_highlight" string="Import Skipped Note"
+                                                    type="object" icon="cloud_download"/>
+                                        </group>
+                                    </page>
+                                    <page name='hubspot_emails' string="Emails" invisible="active == False">
+                                        <group col="4">
+                                            <!-- <field name="hubspot_sync_email"/> -->
+                                            <field name="modifiedDateForEmail" invisible="1"/>
+                                            <field name="hubspot_is_import_email" widget="boolean_toggle"
+                                            />
+                                            <field name="all_email" invisible="1"/>
+                                            <field name="hubspot_is_export_email"
+                                            invisible="1"/>
+                                        </group>
+                                        <group>
+                                            <button name="action_import_email"
+                                                    invisible="hubspot_is_import_email == False"
+                                                    class="oe_highlight" string="Import Email"
+                                                    type="object" icon="cloud_download"/>
+                                            <button name="action_export_email"
+                                                    invisible="1"
+                                                    class="oe_highlight" string="Export Email"
+                                                    type="object" icon="cloud_upload"/>
+                                        </group>
+                                    </page>
+                                    <page name='hubspot_logger_meeting' string="Log meeting"
+                                          invisible="active == False">
+                                        <group col="4">
+                                            <!-- <field name="hubspot_sync_log_meeting"/> -->
+                                            <field name="modifiedDateForlogmeeting" invisible="1"/>
+                                            <field name="hubspot_is_import_log_meeting" widget="boolean_toggle"
+                                            />
+                                            <field name="all_log_meeting" invisible="1"/>
+                                            <field name="hubspot_is_export_log_meeting"
+                                            invisible="1"/>
+                                        </group>
+                                        <group>
+                                            <button name="action_import_log_meeting"
+                                                    invisible="hubspot_is_import_log_meeting == False"
+                                                    class="oe_highlight" string="Import Log Meeting"
+                                                    type="object" icon="cloud_download"/>
+                                            <button name="action_export_log_meeting"
+                                                    invisible="1"
+                                                    class="oe_highlight" string="Export Log Meeting"
+                                                    type="object" icon="cloud_upload"/>
+                                        </group>
+                                    </page>
+                                    <page name='hubspot_log_email' string="Log Email"
+                                          invisible="active == False">
+                                        <group col="4">
+                                            <!-- <field name="hubspot_sync_log_email"/> -->
+                                            <field name="modifiedDateForLogEmail" invisible="1"/>
+                                            <field name="hubspot_is_import_log_email" widget="boolean_toggle"
+                                            />
+                                            <field name="all_log_email" invisible="1"/>
+                                            <field name="hubspot_is_export_log_email"
+                                            invisible="1"/>
+                                        </group>
+                                        <group>
+                                            <button name="action_import_log_email"
+                                                    invisible="hubspot_is_import_log_email == False"
+                                                    class="oe_highlight" string="Import Log Email"
+                                                    type="object" icon="cloud_download"/>
+                                            <button name="action_export_log_email"
+                                                    invisible="1"
+                                                    class="oe_highlight" string="Export Log Email"
+                                                    type="object" icon="cloud_upload"/>
+                                        </group>
+                                    </page>
+                                </notebook>
+                            </page>
+
+                            <!-- NEW CODE -->
+                            <page string="Field Mapping">
+                                <notebook>
+                                    <page string="Contact">
+                                        <group>
+                                            <field name="contact_field_mapping">
+                                                <list editable="bottom">
+                                                    <field name="odoo_fields" required="1"/>
+                                                    <field name="hubspot_fields"
+                                                           domain="[('hubspot_instance_id','=',parent.id),('hubspot_compute', '=', False),('hubspot_readonly', '=', False),('field_type', '!=', 'calculation_equation')]"
+                                                           required="1"/>
+                                                </list>
+                                            </field>
+                                        </group>
+                                        <group invisible="hubspot_app_key == False">
+                                            <button name="action_import_contact_fields" type="object" icon="cloud_download"
+                                                    class="oe_highlight" string="Import Contact Fields"/>
+                                        </group>
+                                    </page>
+                                    <page string="Companies">
+                                        <group>
+                                            <field name="company_field_mapping">
+                                                <list editable="bottom">
+                                                    <field name="odoo_fields" required="1"/>
+                                                    <field name="hubspot_fields"
+                                                           domain="[('hubspot_instance_id','=',parent.id),('hubspot_compute', '=', False),('hubspot_readonly', '=', False),('field_type', '!=', 'calculation_equation')]"
+                                                           required="1"/>
+                                                </list>
+                                            </field>
+                                        </group>
+                                        <group>
+                                            <button name="action_import_company_fields" type="object" icon="cloud_download"
+                                                    class="oe_highlight" string="Import Company Fields"/>
+                                        </group>
+                                    </page>
+                                    <page string="Deals">
+                                        <group>
+                                            <field name="deals_field_mapping">
+                                                <list editable="bottom">
+                                                    <field name="odoo_fields" required="1"/>
+                                                    <field name="hubspot_fields"
+                                                           domain="[('hubspot_instance_id','=',parent.id),('hubspot_compute', '=', False),('hubspot_readonly', '=', False),('field_type', '!=', 'calculation_equation')]"
+                                                           required="1"/>
+                                                </list>
+                                            </field>
+                                        </group>
+                                        <group>
+                                            <button name="action_import_deals_fields" type="object" icon="cloud_download"
+                                                    class="oe_highlight" string="Import Deals Fields"/>
+                                        </group>
+                                    </page>
+                                </notebook>
+                            </page>
+
+
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_list_hubspot_instance_list" model="ir.ui.view">
+            <field name="name">view.hubspot.instance.list11</field>
+            <field name="model">hubspot.instance</field>
+            <field name="arch" type="xml">
+                <!-- Instance list: name plus connection health at a glance ######-->
+                <list string="Hubspot Instance">
+                    <field name="name"/>
+                    <field name="default_instance" widget="boolean_toggle" readonly="1" optional="show"/>
+                    <field name="connection_status" widget="badge" optional="show"
+                           decoration-success="connection_status == 'connected'"
+                           decoration-danger="connection_status in ('invalid', 'failed')"
+                           decoration-muted="connection_status == 'not_tested'"/>
+                    <field name="last_connection_check" optional="show"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_hubspot_instance" model="ir.actions.act_window">
+            <field name="name">Hubspot Instance</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hubspot.instance</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <menuitem name="Hubspot Instance" id="hubspot_instance_menu" groups="group_hubspot_manager"
+                  web_icon="hubspot,static/description/hubspot_menu_icon.png"/>
+        <menuitem id="menu_hubspot_instance" name="Hubspot Instance" sequence="1" parent="hubspot_instance_menu"
+                  action="action_hubspot_instance"/>
+        <menuitem id="hubspot_field_mapping" name="Hubspot Fields" sequence="3" parent="hubspot_instance_menu"
+        />
+    </data>
+</odoo>

@@ -1,0 +1,6 @@
+hubspot-connection==1.0rc8.post0
+hubspot-contacts==1.1.1
+requests
+six
+future
+voluptuous

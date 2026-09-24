@@ -1,0 +1,48 @@
+# Render Blueprint - Odoo HubSpot Integration
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: odoo-hubspot
+    runtime: docker
+    plan: starter          # Change to standard/pro for production
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /web/login
+    envVars:
+      - key: ADMIN_PASSWORD
+        generateValue: true   # Auto-generates a secure password
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: "8069"
+      - key: DB_HOST
+        fromDatabase:
+          name: odoo-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: odoo-db
+          property: port
+      - key: DB_USER
+        fromDatabase:
+          name: odoo-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: odoo-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: odoo-db
+          property: database
+    disk:
+      name: odoo-data
+      mountPath: /var/lib/odoo
+      sizeGB: 10
+
+databases:
+  - name: odoo-db
+    plan: basic-256mb      # Upgrade for production
+    databaseName: odoo
+    user: odoo

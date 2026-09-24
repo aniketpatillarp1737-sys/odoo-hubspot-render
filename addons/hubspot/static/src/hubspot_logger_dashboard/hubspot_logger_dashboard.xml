@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="hubspot.LoggerDashboard">
+        <div class="o_action o_hs_logger d-flex flex-row h-100 overflow-hidden">
+
+            <!-- Main column: header, KPI cards, filters, list/timeline ######-->
+            <div class="o_hs_main flex-grow-1 overflow-auto">
+
+                <div class="o_hs_header d-flex flex-wrap align-items-start justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="o_hs_logo"><i class="oi" data-icon="account_tree"/></div>
+                        <div>
+                            <h2 class="o_hs_title mb-1">HubSpot Logger</h2>
+                            <div class="text-muted small">Monitor HubSpot synchronization activities, record syncs and system events</div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <div class="position-relative">
+                            <button class="btn btn-light o_hs_btn" t-on-click.stop="this.toggleRangeMenu">
+                                <i class="oi me-2" data-icon="calendar_today"/><t t-out="this.currentRangeLabel"/><i class="oi ms-2" data-icon="expand_more"/>
+                            </button>
+                            <div t-if="this.state.rangeMenuOpen" class="o_hs_menu" t-on-click.stop="this.noop">
+                                <t t-foreach="this.dateRanges" t-as="range" t-key="range.key">
+                                    <a href="#" t-attf-class="o_hs_menu_item {{ this.state.filters.date_range === range.key ? 'active' : '' }}"
+                                       t-on-click.prevent="() => this.selectRange(range.key)">
+                                        <t t-out="range.label"/>
+                                    </a>
+                                </t>
+                            </div>
+                        </div>
+                        <button t-attf-class="btn btn-light o_hs_btn {{ this.state.showFilters ? 'active' : '' }}"
+                                t-on-click="this.toggleFilters">
+                            <i class="oi me-2" data-icon="filter_alt"/>Filters
+                        </button>
+                        <button class="btn btn-light o_hs_btn" t-on-click="() => this.reload(false)">
+                            <i t-attf-class="oi me-2 {{ this.state.loading ? 'oi-spin' : '' }}" data-icon="refresh"/>Refresh
+                        </button>
+                        <button class="btn btn-light o_hs_btn" t-on-click="this.exportLogs">
+                            <i class="oi me-2" data-icon="download"/>Export<t t-if="this.selectedIds.length"> (<t t-out="this.selectedIds.length"/>)</t>
+                        </button>
+                        <button class="btn btn-light o_hs_btn" title="Open classic list / pivot / graph view" t-on-click="this.openClassicView">
+                            <i class="oi" data-icon="settings"/>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI cards (click to filter) ######-->
+                <div class="o_hs_kpis">
+                    <t t-foreach="this.kpiCards" t-as="card" t-key="card.key">
+                        <div t-attf-class="o_hs_kpi {{ card.cls }}" t-on-click="() => this.setKpiFilter(card.key)">
+                            <div class="o_hs_kpi_icon"><i class="oi" t-att-data-icon="card.icon"/></div>
+                            <div class="flex-grow-1">
+                                <div class="o_hs_kpi_title"><t t-out="card.title"/></div>
+                                <div class="d-flex align-items-baseline gap-2">
+                                    <span class="o_hs_kpi_value"><t t-out="this.formatNumber(card.data.value)"/></span>
+                                    <span t-if="card.data.trend !== false and card.data.trend !== undefined"
+                                          t-attf-class="o_hs_trend {{ card.data.trend >= 0 ? 'up' : 'down' }}">
+                                        <i class="oi" t-att-data-icon="card.data.trend >= 0 ? 'arrow_upward' : 'arrow_downward'"/>
+                                        <t t-out="this.trendAbs(card.data.trend)"/>%
+                                    </span>
+                                </div>
+                                <div class="o_hs_kpi_subtitle"><t t-out="card.subtitle"/></div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Filter bar ######-->
+                <div t-if="this.state.showFilters" class="o_hs_filters">
+                    <div class="o_hs_search">
+                        <i class="oi" data-icon="search"/>
+                        <input type="text" class="form-control" placeholder="Search logs, operations, records, HubSpot IDs..."
+                               t-att-value="this.state.filters.search" t-on-input="this.onSearchInput"/>
+                    </div>
+                    <select class="form-select" t-on-change="(ev) => this.setFilter('operation', ev.target.value)">
+                        <option value="" t-att-selected="!this.state.filters.operation">All Operations</option>
+                        <t t-foreach="this.state.operations" t-as="operation" t-key="operation">
+                            <option t-att-value="operation" t-att-selected="this.state.filters.operation === operation"><t t-out="operation"/></option>
+                        </t>
+                    </select>
+                    <select class="form-select" t-on-change="(ev) => this.setFilter('status', ev.target.value)">
+                        <option value="" t-att-selected="!this.state.filters.status">All Status</option>
+                        <option value="success" t-att-selected="this.state.filters.status === 'success'">Success</option>
+                        <option value="failed" t-att-selected="this.state.filters.status === 'failed'">Failed</option>
+                    </select>
+                    <select class="form-select" t-on-change="(ev) => this.setFilter('user_id', ev.target.value)">
+                        <option value="" t-att-selected="!this.state.filters.user_id">All Users</option>
+                        <t t-foreach="this.state.users" t-as="user" t-key="user.id">
+                            <option t-att-value="user.id" t-att-selected="this.isUserSelected(user.id)"><t t-out="user.name"/></option>
+                        </t>
+                    </select>
+                    <select class="form-select" t-on-change="(ev) => this.setFilter('log_type', ev.target.value)">
+                        <option value="" t-att-selected="!this.state.filters.log_type">All Log Types</option>
+                        <t t-foreach="this.logTypeKeys" t-as="typeKey" t-key="typeKey">
+                            <option t-att-value="typeKey" t-att-selected="this.state.filters.log_type === typeKey"><t t-out="this.logTypeMeta[typeKey].label"/></option>
+                        </t>
+                    </select>
+                    <a href="#" t-if="this.hasActiveFilters" class="o_hs_clear" t-on-click.prevent="this.clearFilters">Clear Filters</a>
+                </div>
+
+                <!-- List / Timeline switch ######-->
+                <div class="o_hs_view_switch">
+                    <button t-attf-class="btn btn-sm {{ this.state.view === 'list' ? 'btn-primary' : 'btn-light' }}" t-on-click="() => this.setView('list')">
+                        <i class="oi me-1" data-icon="format_list_bulleted"/>List
+                    </button>
+                    <button t-attf-class="btn btn-sm {{ this.state.view === 'timeline' ? 'btn-primary' : 'btn-light' }}" t-on-click="() => this.setView('timeline')">
+                        <i class="oi me-1" data-icon="schedule"/>Timeline
+                    </button>
+                </div>
+
+                <div class="o_hs_card">
+                    <!-- List view ######-->
+                    <div t-if="this.state.view === 'list'" class="table-responsive">
+                        <table class="table o_hs_table mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="o_hs_col_check">
+                                        <input type="checkbox" class="form-check-input" t-att-checked="this.allSelected" t-on-click="this.toggleSelectAll"/>
+                                    </th>
+                                    <th>Status</th>
+                                    <th class="o_hs_sortable" t-on-click="this.toggleSort">
+                                        Date &amp; Time
+                                        <i class="oi ms-1" t-att-data-icon="this.state.order === 'hubspot_datetime desc' ? 'arrow_downward' : 'arrow_upward'"/>
+                                    </th>
+                                    <th>Operation</th>
+                                    <th>User</th>
+                                    <th>Record</th>
+                                    <th>Description</th>
+                                    <th>Log Type</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-if="!this.state.records.length">
+                                    <td colspan="9" class="o_hs_empty">
+                                        <i class="oi d-block mb-2 oi-2x" data-icon="inbox"/>
+                                        <t t-if="this.state.loading">Loading logs...</t>
+                                        <t t-else="">No logs match the selected filters.</t>
+                                    </td>
+                                </tr>
+                                <t t-foreach="this.state.records" t-as="log" t-key="log.id">
+                                    <tr t-attf-class="o_hs_row {{ this.state.activeId === log.id ? 'o_hs_row_active' : '' }}"
+                                        t-on-click="() => this.openDetails(log.id)">
+                                        <td class="o_hs_col_check" t-on-click.stop="this.noop">
+                                            <input type="checkbox" class="form-check-input"
+                                                   t-att-checked="this.state.selected[log.id]" t-on-click="() => this.toggleSelect(log.id)"/>
+                                        </td>
+                                        <td>
+                                            <span t-attf-class="o_hs_badge {{ (this.statusMeta[log.status] or {}).cls }}">
+                                                <i class="oi me-1" t-att-data-icon="(this.statusMeta[log.status] or {}).icon"/><t t-out="this.statusLabel(log.status)"/>
+                                            </span>
+                                        </td>
+                                        <td class="text-nowrap">
+                                            <div><t t-out="this.formatDate(log.hubspot_datetime)"/></div>
+                                            <div class="text-muted small"><t t-out="this.formatTime(log.hubspot_datetime)"/></div>
+                                        </td>
+                                        <td class="fw-semibold"><t t-out="log.operation_label"/></td>
+                                        <td>
+                                            <div t-if="log.user_id" class="d-flex align-items-center gap-2 text-nowrap">
+                                                <img class="o_hs_avatar" t-att-src="this.avatarUrl(log.user_id)" alt=""/>
+                                                <span><t t-out="log.user_id[1]"/></span>
+                                            </div>
+                                            <span t-else="" class="text-muted">-</span>
+                                        </td>
+                                        <td>
+                                            <t t-if="log.record_name">
+                                                <div class="fw-semibold o_hs_ellipsis"><t t-out="log.record_name"/></div>
+                                                <div class="text-muted small"><t t-out="this.recordActionLabels[log.record_action] or ''"/></div>
+                                            </t>
+                                            <span t-else="" class="text-muted">-</span>
+                                        </td>
+                                        <td class="o_hs_desc"><div class="o_hs_clamp"><t t-out="log.hubspot_description"/></div></td>
+                                        <td>
+                                            <span t-attf-class="o_hs_tag {{ (this.logTypeMeta[log.log_type] or {}).cls }}">
+                                                <i class="oi me-1" t-att-data-icon="(this.logTypeMeta[log.log_type] or {}).icon"/><t t-out="this.logTypeLabel(log.log_type)"/>
+                                            </span>
+                                        </td>
+                                        <td class="text-center position-relative" t-on-click.stop="this.noop">
+                                            <button class="btn btn-link o_hs_dots" t-on-click.stop="() => this.toggleRowMenu(log.id)">
+                                                <i class="oi" data-icon="more_horiz"/>
+                                            </button>
+                                            <div t-if="this.state.rowMenuId === log.id" class="o_hs_menu o_hs_menu_right">
+                                                <a href="#" class="o_hs_menu_item" t-on-click.prevent="() => this.viewDetailsFromMenu(log.id)">
+                                                    <i class="oi me-2" data-icon="visibility"/>View Details
+                                                </a>
+                                                <a href="#" t-if="log.res_model and log.res_id" class="o_hs_menu_item"
+                                                   t-on-click.prevent="() => this.openRecord(log.res_model, log.res_id)">
+                                                    <i class="oi me-2" data-icon="open_in_new"/>View Record
+                                                </a>
+                                                <a href="#" class="o_hs_menu_item" t-on-click.prevent="() => this.openLogForm(log.id)">
+                                                    <i class="oi me-2" data-icon="description"/>Open Log Form
+                                                </a>
+                                                <a href="#" class="o_hs_menu_item" t-on-click.prevent="() => this.copyFromMenu(log.hubspot_description)">
+                                                    <i class="oi me-2" data-icon="content_copy"/>Copy Description
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Timeline view ######-->
+                    <div t-else="" class="o_hs_timeline_view">
+                        <div t-if="!this.state.records.length" class="o_hs_empty">
+                            <i class="oi d-block mb-2 oi-2x" data-icon="inbox"/>No logs match the selected filters.
+                        </div>
+                        <t t-foreach="this.timelineGroups" t-as="group" t-key="group.key">
+                            <div class="o_hs_tl_day"><t t-out="group.key"/></div>
+                            <t t-foreach="group.items" t-as="log" t-key="log.id">
+                                <div t-attf-class="o_hs_tl_item {{ this.state.activeId === log.id ? 'o_hs_row_active' : '' }}"
+                                     t-on-click="() => this.openDetails(log.id)">
+                                    <div t-attf-class="o_hs_tl_dot {{ (this.statusMeta[log.status] or {}).cls }}">
+                                        <i class="oi" t-att-data-icon="(this.statusMeta[log.status] or {}).icon"/>
+                                    </div>
+                                    <div class="flex-grow-1 min-w-0">
+                                        <div class="d-flex flex-wrap align-items-center gap-2">
+                                            <span class="fw-semibold"><t t-out="log.operation_label"/></span>
+                                            <span t-attf-class="o_hs_tag {{ (this.logTypeMeta[log.log_type] or {}).cls }}"><t t-out="this.logTypeLabel(log.log_type)"/></span>
+                                            <span t-if="log.record_name" class="text-muted small">· <t t-out="log.record_name"/></span>
+                                        </div>
+                                        <div class="o_hs_clamp text-muted small mt-1"><t t-out="log.hubspot_description"/></div>
+                                    </div>
+                                    <div class="text-muted small text-nowrap ms-3">
+                                        <t t-out="this.formatTime(log.hubspot_datetime)"/>
+                                        <div t-if="log.user_id"><t t-out="log.user_id[1]"/></div>
+                                    </div>
+                                </div>
+                            </t>
+                        </t>
+                    </div>
+
+                    <!-- Pagination ######-->
+                    <div class="o_hs_pager">
+                        <span class="text-muted small">
+                            Showing <t t-out="this.rangeStart"/> – <t t-out="this.rangeEnd"/> of <t t-out="this.formatNumber(this.state.total)"/>
+                        </span>
+                        <div class="d-flex align-items-center gap-1">
+                            <button class="btn btn-light btn-sm" t-att-disabled="this.state.page === 1" t-on-click="() => this.goToPage(this.state.page - 1)">
+                                <i class="oi" data-icon="chevron_left"/>
+                            </button>
+                            <t t-foreach="this.pageItems" t-as="item" t-key="item.key">
+                                <span t-if="item.gap" class="px-1 text-muted">…</span>
+                                <button t-else="" t-attf-class="btn btn-sm {{ item.page === this.state.page ? 'btn-primary' : 'btn-light' }}"
+                                        t-on-click="() => this.goToPage(item.page)">
+                                    <t t-out="item.page"/>
+                                </button>
+                            </t>
+                            <button class="btn btn-light btn-sm" t-att-disabled="this.state.page >= this.pageCount" t-on-click="() => this.goToPage(this.state.page + 1)">
+                                <i class="oi" data-icon="chevron_right"/>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right side panel: log details ######-->
+            <div t-if="this.state.activeId" class="o_hs_panel">
+                <div class="o_hs_panel_head">
+                    <span class="fw-semibold">Log Details</span>
+                    <button class="btn btn-link text-muted p-0" t-on-click="this.closeDetails"><i class="oi" data-icon="close"/></button>
+                </div>
+                <div t-if="this.state.detailsLoading and !this.state.details" class="p-4 text-center text-muted">
+                    <i class="oi oi-spin me-2" data-icon="progress_activity"/>Loading...
+                </div>
+                <t t-set="d" t-value="this.state.details"/>
+                <div t-if="d" class="o_hs_panel_body">
+                    <span t-attf-class="o_hs_badge {{ (this.statusMeta[d.status] or {}).cls }}">
+                        <i class="oi me-1" t-att-data-icon="(this.statusMeta[d.status] or {}).icon"/><t t-out="this.statusLabel(d.status)"/>
+                    </span>
+                    <h4 class="mt-3 mb-1"><t t-out="d.operation_label"/></h4>
+                    <div class="text-muted small mb-3">
+                        <i class="oi me-1" data-icon="schedule"/><t t-out="this.formatDate(d.hubspot_datetime)"/>, <t t-out="this.formatTime(d.hubspot_datetime)"/>
+                    </div>
+
+                    <div class="o_hs_meta">
+                        <i class="oi" data-icon="person"/>
+                        <div><div class="o_hs_meta_label">User</div><div><t t-out="d.user_id ? d.user_id[1] : '-'"/></div></div>
+                    </div>
+                    <div class="o_hs_meta">
+                        <i class="oi" data-icon="sell"/>
+                        <div><div class="o_hs_meta_label">Log Type</div><div><t t-out="this.logTypeLabel(d.log_type)"/></div></div>
+                    </div>
+
+                    <!-- Synced record details (success record-level logs) ######-->
+                    <div t-if="d.res_model" class="o_hs_record_card">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="fw-semibold"><i class="oi me-2" data-icon="database"/>Synced Record</span>
+                            <span class="o_hs_tag o_hs_tag_info"><t t-out="this.recordActionLabels[d.record_action] or ''"/></span>
+                        </div>
+                        <div class="o_hs_kv"><span>Name</span><span class="fw-semibold"><t t-out="d.record_name or '-'"/></span></div>
+                        <div class="o_hs_kv"><span>Model</span><span><t t-out="d.model_label or d.res_model"/></span></div>
+                        <div class="o_hs_kv">
+                            <span>Odoo ID</span>
+                            <span><t t-out="d.res_id"/><i class="oi o_hs_copy" data-icon="content_copy" t-on-click="() => this.copyText(d.res_id)"/></span>
+                        </div>
+                        <div class="o_hs_kv">
+                            <span>HubSpot ID</span>
+                            <span><t t-out="d.hubspot_record_id or '-'"/>
+                                <i t-if="d.hubspot_record_id" class="oi o_hs_copy" data-icon="content_copy" t-on-click="() => this.copyText(d.hubspot_record_id)"/>
+                            </span>
+                        </div>
+                        <div t-if="!d.can_open" class="text-muted small mt-2">
+                            <i class="oi me-1" data-icon="info"/>The record no longer exists in Odoo.
+                        </div>
+                    </div>
+
+                    <div class="o_hs_section_title"><i class="oi me-2" data-icon="description"/>Description</div>
+                    <div class="o_hs_desc_full"><t t-out="d.summary"/></div>
+
+                    <!-- Collapsible technical sections ######-->
+                    <div class="o_hs_collapse">
+                        <div class="o_hs_collapse_head" t-on-click="() => this.toggleSection('technical')">
+                            <span><i class="oi me-2" data-icon="settings"/>Technical Information</span>
+                            <i class="oi" t-att-data-icon="this.state.sections.technical ? 'expand_less' : 'expand_more'"/>
+                        </div>
+                        <div t-if="this.state.sections.technical" class="o_hs_collapse_body">
+                            <div class="o_hs_kv"><span>Log ID</span><span><t t-out="d.id"/><i class="oi o_hs_copy" data-icon="content_copy" t-on-click="() => this.copyText(d.id)"/></span></div>
+                            <div class="o_hs_kv"><span>Operation</span><span><t t-out="d.hubspot_operation or '-'"/></span></div>
+                            <div class="o_hs_kv"><span>Sync Type</span><span class="text-capitalize"><t t-out="d.operation_type or '-'"/></span></div>
+                            <div class="o_hs_kv"><span>Debug Log</span><span><t t-out="d.debug_logs ? 'Yes' : 'No'"/></span></div>
+                        </div>
+                    </div>
+                    <div t-if="d.request" class="o_hs_collapse">
+                        <div class="o_hs_collapse_head" t-on-click="() => this.toggleSection('request')">
+                            <span><i class="oi me-2" data-icon="upload"/>Request Information (Odoo vals)</span>
+                            <i class="oi" t-att-data-icon="this.state.sections.request ? 'expand_less' : 'expand_more'"/>
+                        </div>
+                        <pre t-if="this.state.sections.request" class="o_hs_pre"><t t-out="d.request"/></pre>
+                    </div>
+                    <div t-if="d.response" class="o_hs_collapse">
+                        <div class="o_hs_collapse_head" t-on-click="() => this.toggleSection('response')">
+                            <span><i class="oi me-2" data-icon="download"/>Response Information (HubSpot)</span>
+                            <i class="oi" t-att-data-icon="this.state.sections.response ? 'expand_less' : 'expand_more'"/>
+                        </div>
+                        <pre t-if="this.state.sections.response" class="o_hs_pre"><t t-out="d.response"/></pre>
+                    </div>
+                    <div t-if="d.status === 'failed'" class="o_hs_collapse">
+                        <div class="o_hs_collapse_head" t-on-click="() => this.toggleSection('error')">
+                            <span class="text-danger"><i class="oi me-2" data-icon="warning"/>Error Details</span>
+                            <i class="oi" t-att-data-icon="this.state.sections.error ? 'expand_less' : 'expand_more'"/>
+                        </div>
+                        <pre t-if="this.state.sections.error" class="o_hs_pre"><t t-out="d.hubspot_description"/></pre>
+                    </div>
+
+                    <!-- Recent activity up to this log ######-->
+                    <div class="o_hs_section_title mt-3"><i class="oi me-2" data-icon="history"/>Timeline</div>
+                    <div class="o_hs_mini_tl">
+                        <t t-foreach="d.timeline" t-as="item" t-key="item.id">
+                            <div t-attf-class="o_hs_mini_item {{ item.id === d.id ? 'current' : '' }}" t-on-click="() => this.openDetails(item.id)">
+                                <span t-attf-class="o_hs_tl_dot sm {{ (this.statusMeta[item.status] or {}).cls }}">
+                                    <i class="oi" t-att-data-icon="(this.statusMeta[item.status] or {}).icon"/>
+                                </span>
+                                <span class="flex-grow-1 o_hs_ellipsis"><t t-out="item.operation_label"/></span>
+                                <span t-attf-class="o_hs_badge sm {{ (this.statusMeta[item.status] or {}).cls }}"><t t-out="this.statusLabel(item.status)"/></span>
+                                <span class="text-muted small text-nowrap"><t t-out="this.formatTime(item.hubspot_datetime)"/></span>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+                <div t-if="d" class="o_hs_panel_foot">
+                    <button class="btn btn-light flex-fill" t-on-click="this.copyDetails"><i class="oi me-2" data-icon="content_copy"/>Copy Details</button>
+                    <button class="btn btn-light flex-fill" t-att-disabled="!d.can_open"
+                            t-on-click="() => this.openRecord(d.res_model, d.res_id)">
+                        <i class="oi me-2" data-icon="open_in_new"/>View Record
+                    </button>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hubspot_contact_fields_form_view" model="ir.ui.view">
+        <field name="name">hubspot.contact.fields.form.view</field>
+        <field name="model">hubspot.contact.fields</field>
+        <field name="arch" type="xml">
+            <form string="Hubspot Contact Fields">
+                <group>
+                    <field name="name"/>
+                    <field name="field_type"/>
+                    <field name="technical_name"/>
+                    <field name="options"/>
+                    <field name="description"/>
+                    <field name="hubspot_compute"/>
+                    <field name="hubspot_readonly"/>
+                    <field name="hubspot_instance_id"/>
+
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="hubspot_contact_fields_list_view" model="ir.ui.view">
+        <field name="name">hubspot.contact.fields.list.view</field>
+        <field name="model">hubspot.contact.fields</field>
+        <field name="arch" type="xml">
+            <list string="Hubspot Contact Fields">
+                <field name="name"/>
+                <field name="field_type"/>
+                <field name="hubspot_instance_id"/>
+
+            </list>
+        </field>
+    </record>
+
+    <record id="hubspot_contact_fields_action" model="ir.actions.act_window">
+        <field name="name">Hubspot Contact Fields</field>
+        <field name="res_model">hubspot.contact.fields</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="hubspot_contact_fields_menu"
+              name="Contact Fields"
+              action="hubspot_contact_fields_action"
+              sequence="1" parent="hubspot_field_mapping"
+    />
+</odoo>

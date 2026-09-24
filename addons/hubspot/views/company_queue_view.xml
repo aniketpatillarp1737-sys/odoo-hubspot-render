@@ -1,0 +1,184 @@
+<?xml version="1.0" ?>
+<odoo>
+    <record id="company_queue_list_view" model="ir.ui.view">
+        <field name="name">Company Queue List View</field>
+        <field name="model">company.queue</field>
+        <field name="arch" type="xml">
+            <list default_order="name desc" sample="1" decoration-primary="is_queue_processing==True" create="0">
+                <field name="name"/>
+                <field name="hubspot_instance_id"/>
+                <field name="queue_created_by"/>
+                <field name="is_queue_processing" column_invisible="True"/>
+                <field name="is_any_action_require" column_invisible="True"/>
+                <field name="state" decoration-success="state == 'completed'" decoration-info="state == 'draft'"
+                       decoration-warning="state == 'partially_completed'" decoration-danger="state == 'failed'"
+                       widget="badge"/>
+                <field name="queue_status" invisible="is_queue_processing == False"/>
+                <field name="activity_ids" widget="list_activity"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="company_queue_form_view"
+            model="ir.ui.view">
+        <field name="name">Company Queue Form View</field>
+        <field name="model">company.queue</field>
+        <field name="arch" type="xml">
+            <form string="Company Queue" create="0" edit="0" duplicate="0">
+                <header>
+                    <button
+                                name="queue_manual_company_process"
+                                string="Process Manually" type="object" class="btn-primary"
+                                invisible="(is_queue_processing == True) or (state in ['completed'])"/>
+                    <field name="state" widget="statusbar"/>
+                    <field name="is_queue_processing" invisible="1"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button id="total_records_in_queue_line" class="oe_stat_button" icon="format_list_bulleted" disabled="1">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="total_records_in_queue_line"/>
+                                </span>
+                                <span class="o_stat_text">Records</span>
+                            </div>
+                        </button>
+
+                        <button id="draft_records_in_queue_line" class="oe_stat_button" icon="description" disabled="1">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="draft_records_in_queue_line"/>
+                                </span>
+                                <span class="o_stat_text">Draft</span>
+                            </div>
+                        </button>
+                        <button id="fail_records_in_queue_line" class="oe_stat_button" icon="priority_high" disabled="1">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="fail_records_in_queue_line"/>
+                                </span>
+                                <span class="o_stat_text">Failed</span>
+                            </div>
+                        </button>
+                        
+                        <button id="done_records_in_queue_line" class="oe_stat_button" icon="hourglass_empty" disabled="1"
+                                invisible="state  in ['completed']">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="done_records_in_queue_line"/>
+                                </span>
+                                <span class="o_stat_text">Done</span>
+                            </div>
+                        </button>
+                        <button id="cancel_records_in_queue_line" class="oe_stat_button" icon="block" disabled="1">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="cancel_records_in_queue_line"/>
+                                </span>
+                                <span class="o_stat_text">cancelled</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group name="hubspot_instance_id">
+                        <group>
+                            <field name="hubspot_instance_id" readonly="1"/>
+                            <field name="offset" readonly="1" invisible="1"/>
+                            <field name="has_more" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="queue_created_by" string="Created On" readonly="1"/>
+                            <field name="time_proccessed_by_queue" invisible="1"/>
+                            <field name="is_any_action_require" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="company Queue line">
+                            <field name="company_queue_lines_ids" readonly="True">
+                                <list create="false" editable="bottom"
+                                      decoration-danger="state=='failed'"
+                                      decoration-success="state=='done'"
+                                      decoration-info="state=='draft'">
+                                    <field name="name"/>
+                                    <field name="hubspot_company_data_id" string="Hubspot company Id"/>
+                                    <field name="hubspot_image_import_state" string="Image Import State" widget="badge"
+                                           decoration-success="state == 'done'"
+                                           decoration-warning="state == 'pending'"/>
+                                    <field name="write_date" string="Updated Date"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                
+                 <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="company_queue_filter" model="ir.ui.view">
+        <field name="name">Company.queue.filter</field>
+        <field name="model">company.queue</field>
+        <field name="arch" type="xml">
+            <search string="Filter">
+                <field name="name"
+                       filter_domain="['|',('company_queue_lines_ids.name', 'ilike', self),('name', 'ilike', self)]"/>
+                <field name="state"/>
+                <field name="is_queue_processing" invisible="1"/>
+                <filter string="Created by import"
+                        domain="[('queue_created_by', '=', 'import')]" name="created_by_import"/>
+                <filter string="Created by Webhook"
+                        domain="[('queue_created_by', '=', 'webhook')]"
+                        name="created_by_webhook"/>
+                <filter string="Process Running Queue"
+                        domain="[('is_queue_processing', '=', 'True')]" name="process_running_queue"/>
+                <separator/>
+                <filter string="Draft" domain="[('state', '=', 'draft')]"
+                        name="hubspot_draft_queue"/>
+                <filter string="Partially Completed"
+                        domain="[('state', '=', 'partially_completed')]"
+                        name="partially_completed"/>
+                <filter string="Completed"
+                        domain="[('state', '=', 'completed')]" name="hubspot_complete_queue"/>
+                <filter string="Failed" name="hubspot_failed_queue"
+                        domain="[('state', '=', 'failed')]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter string="Instance" name="instance" domain="[]"-->
+<!--                            context="{'group_by': 'hubspot_instance_id'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_company_queue" model="ir.actions.act_window">
+        <field name="name">Company Queues</field>
+        <field name="res_model">company.queue</field>
+        <field name="view_id" ref="company_queue_list_view"/>
+        <field name="help" type="html">
+            <div class="oe_empty_hubspot_instance">
+                <br/>
+                <br/>
+                <br/>
+                <p>
+                    <b>There is No Data</b>
+                </p>
+            </div>
+        </field>
+    </record>
+    <record id="company_queue_sequence" model="ir.sequence">
+            <field name="name">Company Queue sequence</field>
+            <field name="code">company.queue</field>
+            <field name="prefix">HCQ</field>
+            <field name="padding">6</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+    <menuitem name="Companys Queue" id="company_queue_menu"
+              parent="main_queue_menu" sequence="2"
+              action="action_company_queue"/>
+</odoo>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="res_partner_search_hubspot_id_set" model="ir.ui.view">
+            <field name="name">res.partner.search.hubspot.id.set</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_res_partner_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//search" position="inside">
+                    <filter
+                            name="hubspot_id_set"
+                            string="HubSpot ID Set"
+                            domain="[('hubspot_id', '!=', False)]"/>
+                </xpath>
+            </field>
+        </record>
+
+
+        <record id="hubspot_view_partner_form" model="ir.ui.view">
+            <field name="name">res.partner.form.inherit.hubspot</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group[1]" position="after">
+                    <group string="HubSpot Details" name="hubspot_details">
+                        <group>
+                            <field name="hubspot_id" readonly="1"/>
+                        </group>
+
+                        <group>
+                            <field name="hubspot_instance_id" readonly="1"/>
+                        </group>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+        <record model="ir.actions.server" id="export_contact_to_hubspot">
+            <field name="name">Export to Hubspot</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="binding_model_id" ref="base.model_res_partner"/>
+            <field name="state">code</field>
+            <field name="code">if records:
+                for record in records:
+                    record.create_contactcompanies_in_hubspot()
+            </field>
+        </record>
+
+    </data>
+</odoo>

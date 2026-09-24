@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Form view: ribbon for status, operation as title, description in its own tab ######-->
+        <record id="hubspot_logger_form_view" model="ir.ui.view">
+            <field name="name">hubspot.logger.form.view</field>
+            <field name="model">hubspot.logger</field>
+            <field name="arch" type="xml">
+                <form string="Hubspot Logger" create="false" delete="false" edit="false">
+                    <sheet>
+                        <widget name="web_ribbon" title="Success" bg_color="text-bg-success"
+                                invisible="status != 'success'"/>
+                        <widget name="web_ribbon" title="Failed" bg_color="text-bg-danger"
+                                invisible="status != 'failed'"/>
+                        <div class="oe_title">
+                            <label for="operation_label" string="Operation"/>
+                            <h1>
+                                <field name="operation_label" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="hubspot_datetime" string="Date &amp; Time"/>
+                                <field name="status" widget="badge"
+                                       decoration-success="status == 'success'"
+                                       decoration-danger="status == 'failed'"/>
+                                <field name="operation_type" widget="badge"
+                                       decoration-info="operation_type == 'import'"
+                                       decoration-warning="operation_type == 'export'"/>
+                            </group>
+                            <group>
+                                <field name="user_id" widget="many2one_avatar_user"/>
+                                <field name="hubspot_user_id" groups="base.group_no_one"/>
+                                <field name="hubspot_operation" string="Raw Operation" groups="base.group_no_one"/>
+                                <field name="debug_logs"/>
+                            </group>
+                        </group>
+                        <!-- Synced record details, only for record-level logs ######-->
+                        <group string="Synced Record" name="synced_record" invisible="not res_model">
+                            <group>
+                                <field name="record_name"/>
+                                <field name="record_action"/>
+                                <field name="hubspot_record_id"/>
+                            </group>
+                            <group>
+                                <field name="res_model"/>
+                                <field name="res_id"/>
+                                <field name="log_type" widget="badge"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Log Details" name="log_details">
+                                <field name="hubspot_description" nolabel="1" class="font-monospace"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- List view: coloured status/type badges, failed rows in red, optional columns ######-->
+        <record id="hubspot_logger_list_view" model="ir.ui.view">
+            <field name="name">hubspot.logger.list.view</field>
+            <field name="model">hubspot.logger</field>
+            <field name="arch" type="xml">
+                <list string="Hubspot Logger" create="false" delete="false" edit="false"
+                      decoration-danger="status == 'failed'" decoration-muted="debug_logs">
+                    <field name="hubspot_datetime" string="Date &amp; Time"/>
+                    <field name="status" widget="badge"
+                           decoration-success="status == 'success'"
+                           decoration-danger="status == 'failed'"/>
+                    <field name="operation_type" widget="badge" optional="show"
+                           decoration-info="operation_type == 'import'"
+                           decoration-warning="operation_type == 'export'"/>
+                    <field name="operation_label" string="Operation"/>
+                    <field name="log_type" widget="badge" optional="show"
+                           decoration-info="log_type == 'record'"
+                           decoration-success="log_type == 'summary'"
+                           decoration-danger="log_type == 'error'"
+                           decoration-warning="log_type == 'debug'"/>
+                    <field name="record_name" optional="show"/>
+                    <field name="hubspot_record_id" optional="hide"/>
+                    <field name="hubspot_operation" string="Raw Operation" optional="hide"/>
+                    <field name="user_id" widget="many2one_avatar_user" optional="show"/>
+                    <field name="hubspot_user_id" optional="hide"/>
+                    <field name="hubspot_description" optional="show"/>
+                    <field name="debug_logs" column_invisible="1"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Search view: status, sync type and date filters plus group-by options ######-->
+        <record id="hubspot_logger_search_view" model="ir.ui.view">
+            <field name="name">hubspot.logger.search.view</field>
+            <field name="model">hubspot.logger</field>
+            <field name="arch" type="xml">
+                <search string="Search Hubspot Logs">
+                    <field name="hubspot_description" string="Description"/>
+                    <field name="operation_label" string="Operation"/>
+                    <field name="user_id"/>
+                    <field name="record_name"/>
+                    <field name="hubspot_record_id"/>
+
+                    <filter name="filter_success" string="Success" domain="[('status', '=', 'success')]"/>
+                    <filter name="filter_failed" string="Failed" domain="[('status', '=', 'failed')]"/>
+                    <separator/>
+                    <filter name="filter_import" string="Import" domain="[('operation_type', '=', 'import')]"/>
+                    <filter name="filter_export" string="Export" domain="[('operation_type', '=', 'export')]"/>
+                    <filter name="filter_other" string="Other" domain="[('operation_type', '=', 'other')]"/>
+                    <separator/>
+                    <filter name="filter_today" string="Today"
+                            domain="[('hubspot_datetime', '&gt;=', datetime.datetime.combine(context_today(), datetime.time(0, 0, 0)).to_utc().strftime('%Y-%m-%d %H:%M:%S'))]"/>
+                    <filter name="filter_yesterday" string="Yesterday"
+                            domain="[('hubspot_datetime', '&gt;=', datetime.datetime.combine(context_today() - relativedelta(days=1), datetime.time(0, 0, 0)).to_utc().strftime('%Y-%m-%d %H:%M:%S')),
+                                     ('hubspot_datetime', '&lt;', datetime.datetime.combine(context_today(), datetime.time(0, 0, 0)).to_utc().strftime('%Y-%m-%d %H:%M:%S'))]"/>
+                    <filter name="filter_last_7_days" string="Last 7 Days"
+                            domain="[('hubspot_datetime', '&gt;=', datetime.datetime.combine(context_today() - relativedelta(days=7), datetime.time(0, 0, 0)).to_utc().strftime('%Y-%m-%d %H:%M:%S'))]"/>
+                    <filter name="filter_last_30_days" string="Last 30 Days"
+                            domain="[('hubspot_datetime', '&gt;=', datetime.datetime.combine(context_today() - relativedelta(days=30), datetime.time(0, 0, 0)).to_utc().strftime('%Y-%m-%d %H:%M:%S'))]"/>
+                    <filter name="filter_log_date" string="Log Date" date="hubspot_datetime"/>
+                    <separator/>
+                    <filter name="filter_debug" string="Debug Logs" domain="[('debug_logs', '=', True)]"/>
+                    <filter name="filter_record_sync" string="Record Sync" domain="[('log_type', '=', 'record')]"/>
+
+                    <group>
+                        <filter name="groupby_status" string="Status" context="{'group_by': 'status'}"/>
+                        <filter name="groupby_operation" string="Operation" context="{'group_by': 'operation_label'}"/>
+                        <filter name="groupby_operation_type" string="Import / Export" context="{'group_by': 'operation_type'}"/>
+                        <filter name="groupby_user" string="User" context="{'group_by': 'user_id'}"/>
+                        <filter name="groupby_log_type" string="Log Type" context="{'group_by': 'log_type'}"/>
+                        <filter name="groupby_date" string="Date" context="{'group_by': 'hubspot_datetime:day'}"/>
+                    </group>
+
+                    <searchpanel>
+                        <field name="status" icon="check_circle" enable_counters="1"/>
+                        <field name="operation_type" icon="swap_vert" enable_counters="1"/>
+                    </searchpanel>
+                </search>
+            </field>
+        </record>
+
+        <!-- Graph view: daily sync activity stacked by success/failed ######-->
+        <record id="hubspot_logger_graph_view" model="ir.ui.view">
+            <field name="name">hubspot.logger.graph.view</field>
+            <field name="model">hubspot.logger</field>
+            <field name="arch" type="xml">
+                <graph string="Hubspot Sync Activity" type="bar" stacked="1" sample="1">
+                    <field name="hubspot_datetime" interval="day"/>
+                    <field name="status"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Pivot view: operation vs status counts ######-->
+        <record id="hubspot_logger_pivot_view" model="ir.ui.view">
+            <field name="name">hubspot.logger.pivot.view</field>
+            <field name="model">hubspot.logger</field>
+            <field name="arch" type="xml">
+                <pivot string="Hubspot Logs Analysis" sample="1">
+                    <field name="operation_label" type="row"/>
+                    <field name="status" type="col"/>
+                </pivot>
+            </field>
+        </record>
+
+         <record id="hubspot_logger_action" model="ir.actions.act_window">
+            <field name="name">Hubspot Logger</field>
+            <field name="res_model">hubspot.logger</field>
+            <field name="view_mode">list,form,graph,pivot</field>
+            <field name="search_view_id" ref="hubspot_logger_search_view"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No HubSpot logs yet
+                </p>
+                <p>
+                    Every import and export between Odoo and HubSpot is recorded here with its success or failure status.
+                </p>
+            </field>
+        </record>
+
+        <!-- Dashboard (OWL client action) opened from the menu; classic views stay available ######-->
+        <record id="hubspot_logger_dashboard_action" model="ir.actions.client">
+            <field name="name">HubSpot Logger</field>
+            <field name="tag">hubspot_logger_dashboard</field>
+        </record>
+
+        <menuitem id="hubspot_logger_menu"
+        name="Hubspot Logger"
+        action="hubspot_logger_dashboard_action"
+        sequence="2" parent="hubspot_instance_menu"
+        />
+    </data>
+</odoo>

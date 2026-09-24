@@ -1,0 +1,29 @@
+<odoo>
+    <data>
+        <record id="hubspot_taxes_inherit" model="ir.ui.view">
+            <field name="name">account.tax.inherit</field>
+            <field name="model">account.tax</field>
+            <field name="inherit_id" ref="account.view_tax_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='active']" position="after">
+                    <field name="hubspot_tax_id"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="account_tax_search_hubspot_id_set" model="ir.ui.view">
+            <field name="name">account.tax.search.hubspot.id.set</field>
+            <field name="model">account.tax</field>
+            <field name="inherit_id" ref="account.view_account_tax_search"/>
+            <field name="arch" type="xml">
+                <xpath expr="//search" position="inside">
+                    <filter
+                        name="hubspot_id_set"
+                        string="HubSpot ID Set"
+                        domain="[('hubspot_tax_id', '!=', False)]"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

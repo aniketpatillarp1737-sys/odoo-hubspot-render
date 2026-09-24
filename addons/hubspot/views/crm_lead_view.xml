@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="hubspot_crm_lead_form_inherit" model="ir.ui.view">
+            <field name="name">crm.lead.form.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+            <field name="arch" type="xml">
+                <!--                <xpath expr="//field[@name='extra']" position="after">-->
+                <xpath expr="//page[@name='extra']" position="after">
+                    <page string="Hubspot Info" name="hubspot_info">
+                        <group>
+                            <field name="hubspot_id"/>
+                            <field name="hubspot_instance_id"/>
+                            <field name="hubspot_pipeline"/>
+                            <field name="hubspot_deal_stage"/>
+                            <field name="hubspot_deal_type"/>
+                            <field name="partner_ids" widget="many2many_tags"/>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="crm_lead_search_hubspot_id_set" model="ir.ui.view">
+            <field name="name">crm.lead.search.hubspot.id.set</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.view_crm_case_leads_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//search" position="inside">
+                    <filter
+                            name="hubspot_id_set"
+                            string="HubSpot ID Set"
+                            domain="[('hubspot_id', '!=', False)]"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="crm_stage_search_hubspot_id_set" model="ir.ui.view">
+            <field name="name">crm.stage.search.hubspot.id.set</field>
+            <field name="model">crm.stage</field>
+            <field name="inherit_id" ref="crm.crm_lead_stage_search"/>
+            <field name="arch" type="xml">
+                <xpath expr="//search" position="inside">
+                    <filter
+                            name="hubspot_id_set"
+                            string="HubSpot ID Set"
+                            domain="[('hubspot_stage_id', '!=', False)]"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="crm_stage_form_hubspot_id" model="ir.ui.view">
+            <field name="name">crm.stage.form.hubspot.id</field>
+            <field name="model">crm.stage</field>
+            <field name="inherit_id" ref="crm.crm_stage_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group/group[1]" position="inside">
+                    <field name="hubspot_stage_id" readonly="1"/>
+                </xpath>
+            </field>
+        </record>
+
+
+    </data>
+</odoo>

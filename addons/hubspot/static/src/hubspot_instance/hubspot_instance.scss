@@ -1,0 +1,463 @@
+// HubSpot Instance form styling (scoped to .o_hs_instance_form; CSS variables keep dark mode safe) ######
+.o_hs_instance_form {
+    --hs-card: var(--bs-body-bg, #ffffff);
+    --hs-bg: var(--bs-tertiary-bg, #f6f7fb);
+    --hs-border: var(--bs-border-color, #e6e8ef);
+    --hs-muted: var(--bs-secondary-color, #6b7280);
+    --hs-accent: #6d5dd3;
+    --hs-accent-soft: rgba(109, 93, 211, 0.12);
+    --hs-success: #16a34a;
+    --hs-success-soft: rgba(22, 163, 74, 0.12);
+    --hs-danger: #dc2626;
+    --hs-danger-soft: rgba(220, 38, 38, 0.12);
+    --hs-orange: #ff7a59;
+
+    // Use the full width like the reference layout ######
+    .o_form_sheet {
+        max-width: none !important;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+    }
+
+    .min-w-0 {
+        min-width: 0;
+    }
+
+    // Hero card ######
+    .o_hs_hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+        gap: 0;
+        background: var(--hs-card);
+        border: 1px solid var(--hs-border);
+        border-radius: 16px;
+        margin-bottom: 16px;
+        overflow: hidden;
+    }
+    .o_hs_hero_main {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+        padding: 22px 24px;
+    }
+    .o_hs_hero_logo {
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        object-fit: contain;
+        padding: 12px;
+        background: rgba(255, 122, 89, 0.14);
+        flex-shrink: 0;
+    }
+    .o_hs_hero_info {
+        flex-grow: 1;
+        min-width: 0;
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin: 0;
+        }
+    }
+    .o_hs_hero_fields {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 28px;
+        margin-top: 14px;
+    }
+    .o_hs_hero_field {
+        min-width: 180px;
+        label {
+            display: block;
+            font-size: 0.78rem;
+            color: var(--hs-muted);
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+    }
+    .o_hs_chip {
+        display: inline-flex;
+        align-items: center;
+        border: 0;
+        border-radius: 999px;
+        padding: 3px 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .o_hs_chip_success {
+        color: var(--hs-success);
+        background: var(--hs-success-soft);
+    }
+    .o_hs_chip_muted {
+        color: var(--hs-muted);
+        background: var(--hs-bg);
+    }
+    .o_hs_hero_status {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 22px 24px;
+        border-left: 1px solid var(--hs-border);
+        flex-wrap: wrap;
+    }
+    .o_hs_status_icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        flex-shrink: 0;
+        &.ok { color: var(--hs-success); background: var(--hs-success-soft); }
+        &.bad { color: var(--hs-danger); background: var(--hs-danger-soft); }
+        &.idle { color: var(--hs-muted); background: var(--hs-bg); }
+    }
+    .o_hs_status_title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        &.ok { color: var(--hs-success); }
+        &.bad { color: var(--hs-danger); }
+        &.idle { color: var(--hs-muted); }
+    }
+    .o_hs_status_sub,
+    .o_hs_status_checked {
+        font-size: 0.82rem;
+        color: var(--hs-muted);
+    }
+    .o_hs_status_checked .o_field_widget {
+        display: inline-block;
+        width: auto;
+        font-weight: 600;
+        color: var(--bs-body-color, inherit);
+    }
+    .o_hs_btn_soft {
+        color: var(--hs-success);
+        background: var(--hs-success-soft);
+        border: 1px solid var(--hs-success-soft);
+        font-weight: 600;
+    }
+
+    // Notebook tabs and cards ######
+    .o_notebook .nav-tabs {
+        background: transparent;
+    }
+    .o_hs_grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 0.9fr);
+        gap: 16px;
+        align-items: start;
+    }
+    .o_hs_col {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-width: 0;
+    }
+    .o_hs_card {
+        background: var(--hs-card);
+        border: 1px solid var(--hs-border);
+        border-radius: 14px;
+        padding: 16px 18px;
+    }
+    .o_hs_card_title {
+        font-weight: 700;
+        font-size: 0.98rem;
+        display: flex;
+        align-items: center;
+        .oi {
+            color: var(--hs-accent);
+        }
+    }
+    .o_hs_card_sub {
+        font-size: 0.8rem;
+        color: var(--hs-muted);
+        margin: 2px 0 12px;
+    }
+
+    // Synchronization settings ######
+    .o_hs_settings {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+    .o_hs_setting_box {
+        border: 1px solid var(--hs-border);
+        border-radius: 12px;
+        padding: 12px 14px;
+    }
+    .o_hs_setting_wide {
+        grid-column: 1 / -1;
+    }
+    .o_hs_setting_head {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        margin-bottom: 6px;
+        .oi {
+            color: var(--hs-accent);
+        }
+    }
+    .o_hs_toggle_grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 18px;
+    }
+    .o_hs_toggle_row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 4px 0;
+        label {
+            font-weight: 400;
+            margin: 0;
+        }
+        .o_field_widget {
+            width: auto;
+            flex: 0 0 auto;
+        }
+    }
+
+    // Action rows (object buttons with icon, title and description) ######
+    .o_hs_action_row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        text-align: left;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        border: 1px solid var(--hs-border);
+        border-radius: 10px;
+        background: var(--hs-card);
+        color: inherit;
+        transition: background-color 0.15s ease, border-color 0.15s ease;
+        &:hover {
+            border-color: var(--hs-accent);
+            background: var(--hs-accent-soft);
+        }
+        &.o_hs_action_primary {
+            background: var(--hs-accent);
+            border-color: var(--hs-accent);
+            color: #fff;
+            .o_hs_action_desc,
+            .o_hs_action_icon,
+            .o_hs_action_chevron {
+                color: rgba(255, 255, 255, 0.85);
+                background: transparent;
+            }
+        }
+    }
+    .o_hs_action_icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: var(--hs-accent);
+        background: var(--hs-accent-soft);
+        font-size: 18px;
+    }
+    .o_hs_action_text {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        min-width: 0;
+    }
+    .o_hs_action_title {
+        font-weight: 600;
+    }
+    .o_hs_action_desc {
+        font-size: 0.78rem;
+        color: var(--hs-muted);
+    }
+    .o_hs_action_chevron {
+        color: var(--hs-muted);
+    }
+    .o_hs_hint {
+        font-size: 0.82rem;
+        color: var(--hs-muted);
+        padding: 8px 2px;
+    }
+
+    // Key/value rows (connection details) ######
+    .o_hs_kv {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 0;
+        font-size: 0.86rem;
+        border-bottom: 1px dashed var(--hs-border);
+        &:last-child {
+            border-bottom: 0;
+        }
+        > span:first-child {
+            color: var(--hs-muted);
+        }
+        .o_field_widget {
+            width: auto;
+            text-align: right;
+        }
+    }
+
+    // Overview widget: KPI cards and activity list ######
+    .o_hs_ov_kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 14px;
+        margin-bottom: 16px;
+    }
+    .o_hs_ov_kpi {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 18px;
+        background: var(--hs-card);
+        border: 1px solid var(--hs-border);
+        border-radius: 14px;
+        cursor: pointer;
+        transition: box-shadow 0.15s ease, transform 0.15s ease;
+        &:hover {
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+            transform: translateY(-1px);
+        }
+    }
+    .o_hs_ov_kpi_icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+        color: var(--hs-accent);
+        background: var(--hs-accent-soft);
+    }
+    .o_hs_ov_kpi_label {
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .o_hs_ov_kpi_value {
+        font-size: 1.6rem;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+    .o_hs_ov_kpi_sub {
+        font-size: 0.78rem;
+        color: var(--hs-success);
+    }
+    .o_hs_ov_head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    .o_hs_ov_title {
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        .oi {
+            color: var(--hs-accent);
+        }
+    }
+    .o_hs_ov_subtitle {
+        font-size: 0.8rem;
+        color: var(--hs-muted);
+    }
+    .o_hs_ov_link {
+        color: var(--hs-accent);
+        font-weight: 600;
+        font-size: 0.82rem;
+        white-space: nowrap;
+    }
+    .o_hs_ov_pill {
+        font-size: 0.72rem;
+        font-weight: 600;
+        border-radius: 999px;
+        padding: 2px 8px;
+        &.success { color: var(--hs-success); background: var(--hs-success-soft); }
+        &.failed { color: var(--hs-danger); background: var(--hs-danger-soft); }
+    }
+    .o_hs_ov_row {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 9px 8px;
+        border-radius: 10px;
+        cursor: pointer;
+        border-bottom: 1px solid var(--hs-border);
+        &:last-child {
+            border-bottom: 0;
+        }
+        &:hover {
+            background: var(--hs-accent-soft);
+        }
+    }
+    .o_hs_ov_dot {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        &.success { color: var(--hs-success); background: var(--hs-success-soft); }
+        &.failed { color: var(--hs-danger); background: var(--hs-danger-soft); }
+    }
+    .o_hs_ov_tag {
+        font-size: 0.7rem;
+        font-weight: 600;
+        border-radius: 6px;
+        padding: 1px 7px;
+        color: #2563eb;
+        background: rgba(37, 99, 235, 0.12);
+    }
+    .o_hs_ov_record {
+        font-size: 0.82rem;
+        margin-top: 2px;
+    }
+    .o_hs_ov_desc {
+        font-size: 0.8rem;
+        color: var(--hs-muted);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        word-break: break-word;
+    }
+    .o_hs_ov_time {
+        font-size: 0.76rem;
+        color: var(--hs-muted);
+        white-space: nowrap;
+    }
+    .o_hs_ov_empty {
+        color: var(--hs-muted);
+        font-size: 0.85rem;
+        padding: 14px 4px;
+    }
+
+    // Responsive: stack columns on smaller screens ######
+    @media (max-width: 1199.98px) {
+        .o_hs_grid {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        }
+    }
+    @media (max-width: 767.98px) {
+        .o_hs_hero,
+        .o_hs_grid,
+        .o_hs_settings {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .o_hs_hero_status {
+            border-left: 0;
+            border-top: 1px solid var(--hs-border);
+        }
+    }
+}

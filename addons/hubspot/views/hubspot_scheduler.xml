@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+	<data noupdate="0">
+		<record id="auto_sync_users_with_hubspot" model="ir.cron">
+			<field name="name">OdooHubspot - Users Auto Sync</field>
+			<field name="model_id" ref="model_res_users" />
+			<field name="state">code</field>
+			<field name="code">model._cron_syncAllUsers()</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">days</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+
+		<record id="import_contacts_from_queue" model="ir.cron">
+			<field name="name">Import Contacts From Queue</field>
+			<field name="model_id" ref="model_contact_queue" />
+			<field name="state">code</field>
+			<field name="code">model.queue_manual_contact_process()</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">hours</field>
+			<!-- <field name="numbercall">-1</field> -->
+			<!-- <field name="doall" eval="False" /> -->
+			<field name="active" eval="True"/>
+		</record>
+
+		<record id="import_contacts_to_queue" model="ir.cron">
+			<field name="name">Import Contacts To Queue</field>
+			<field name="model_id" ref="model_contact_queue" />
+			<field name="state">code</field>
+			<field name="code">model._cron_import_contacts_from_hubspot()</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">days</field>
+			<!-- <field name="numbercall">-1</field> -->
+			<!-- <field name="doall" eval="False"/> -->
+			<field name="active" eval="True"/> 
+		 </record> 
+		<record id="import_company_from_queue" model="ir.cron">
+			<field name="name">Import Companies To Queue</field>
+			<field name="model_id" ref="model_company_queue"/>
+			<field name="state">code</field>
+			<field name="code">model._cron_import_companies_from_hubspot()</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">days</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="True" />
+		</record>
+		
+		<record id="import_company_to_queue" model="ir.cron">
+			<field name="name">Import Companies From Queue</field>
+			<field name="model_id" ref="model_company_queue"/>
+			<field name="state">code</field>
+			<field name="code">model.queue_manual_company_process()</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">hours</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="True" />
+		</record>
+		<record id="import_deals_to_queue" model="ir.cron">
+			<field name="name">Import Deals To Queue</field>
+			<field name="model_id" ref="model_deal_queue" />
+			<field name="state">code</field>
+			<field name="code">model._cron_import_deals_from_hubspot()</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">days</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="True" />
+		</record>
+		<record id="import_deal_from_queue" model="ir.cron">
+			<field name="name">Import Deals From Queue</field>
+			<field name="model_id" ref="model_deal_queue" />
+			<field name="state">code</field>
+			<field name="code">model.queue_manual_deal_process()</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">hours</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="True" />
+		</record> 
+
+		<record id="update_contacts_to_hubspot" model="ir.cron">
+			<field name="name">Update Contacts From Hubspot</field>
+			<field name="model_id" ref="model_res_partner" />
+			<field name="state">code</field>
+			<field name="code">model._cron_update_contacts_from_hubspot()</field>
+			<field name="interval_number">155</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+		
+		
+
+		        <!--		import skipped contacts-->
+        <record id="import_skipped_contacts_from_hubspot" model="ir.cron">
+            <field name="name">Import Skipped Contacts From Hubspot</field>
+            <field name="model_id" ref="model_res_partner"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_import_skipped_contacts_from_hubspot()</field>
+            <field name="interval_number">155</field>
+            <field name="interval_type">minutes</field>
+            <!-- <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/> -->
+            <field name="active" eval="False"/>
+        </record>
+
+		<record id="export_contacts_to_hubspot" model="ir.cron">
+			<field name="name">Export Contacts To Hubspot</field>
+			<field name="model_id" ref="model_res_partner" />
+			<field name="state">code</field>
+			<field name="code">model._cron_export_contacts_to_hubspot()</field>
+			<field name="interval_number">95</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+
+		<record id="update_companies_to_hubspot" model="ir.cron">
+			<field name="name">Update Companies From Hubspot</field>
+			<field name="model_id" ref="model_res_partner" />
+			<field name="state">code</field>
+			<field name="code">model._cron_update_companies_from_hubspot()</field>
+			<field name="interval_number">60</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+		<record id="export_companies_to_hubspot" model="ir.cron">
+			<field name="name">Export Companies To Hubspot</field>
+			<field name="model_id" ref="model_res_partner" />
+			<field name="state">code</field>
+			<field name="code">model._cron_export_companies_to_hubspot()</field>
+			<field name="interval_number">2</field>
+			<field name="interval_type">hours</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+
+		<record id="export_deals_to_hubspot" model="ir.cron">
+			<field name="name">Export Deals To Hubspot</field>
+			<field name="model_id" ref="model_crm_lead" />
+			<field name="state">code</field>
+			<field name="code">model._cron_export_deals_to_hubspot()</field>
+			<field name="interval_number">95</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+		<record id="import_task_to_hubspot" model="ir.cron">
+			<field name="name">Import Task From Hubspot</field>
+			<field name="model_id" ref="model_mail_activity" />
+			<field name="state">code</field>
+			<field name="code">model._cron_import_task_from_hubspot()</field>
+			<field name="interval_number">155</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+		<record id="export_task_to_hubspot" model="ir.cron">
+			<field name="name">Export Task To Hubspot</field>
+			<field name="model_id" ref="model_mail_activity" />
+			<field name="state">code</field>
+			<field name="code">model._cron_export_task_to_hubspot()</field>
+			<field name="interval_number">95</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+		<record id="import_note_to_hubspot" model="ir.cron">
+			<field name="name">Import Note From Hubspot</field>
+			<field name="model_id" ref="model_mail_message" />
+			<field name="state">code</field>
+			<field name="code">model._cron_import_note_from_hubspot()</field>
+			<field name="interval_number">155</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+		<record id="export_note_to_hubspot" model="ir.cron">
+			<field name="name">Export Note To Hubspot</field>
+			<field name="model_id" ref="model_mail_message" />
+			<field name="state">code</field>
+			<field name="code">model._cron_export_note_to_hubspot()</field>
+			<field name="interval_number">95</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+		<record id="import_email_to_hubspot" model="ir.cron">
+			<field name="name">Import Email From Hubspot</field>
+			<field name="model_id" ref="model_mail_message" />
+			<field name="state">code</field>
+			<field name="code">model._cron_import_email_from_hubspot()</field>
+			<field name="interval_number">155</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+		<record id="export_email_to_hubspot" model="ir.cron">
+			<field name="name">Export Email To Hubspot</field>
+			<field name="model_id" ref="model_mail_message" />
+			<field name="state">code</field>
+			<field name="code">model._cron_export_email_to_hubspot()</field>
+			<field name="interval_number">95</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+		<record id="import_meeting_to_hubspot" model="ir.cron">
+			<field name="name">Import Log Meeting From Hubspot</field>
+			<field name="model_id" ref="model_calendar_event" />
+			<field name="state">code</field>
+			<field name="code">model._cron_import_meeting_from_hubspot()</field>
+			<field name="interval_number">155</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+		<record id="export_meeting_to_hubspot" model="ir.cron">
+			<field name="name">Export Meeting To Hubspot</field>
+			<field name="model_id" ref="model_calendar_event" />
+			<field name="state">code</field>
+			<field name="code">model._cron_export_meeting_to_hubspot()</field>
+			<field name="interval_number">95</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+		<record id="import_log_email_to_hubspot" model="ir.cron">
+			<field name="name">Import Log Email From Hubspot</field>
+			<field name="model_id" ref="model_mail_activity" />
+			<field name="state">code</field>
+			<field name="code">model._cron_import_log_email_from_hubspot()</field>
+			<field name="interval_number">155</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+		<record id="export_log_email_to_hubspot" model="ir.cron">
+			<field name="name">Export Log Email To Hubspot</field>
+			<field name="model_id" ref="model_mail_activity" />
+			<field name="state">code</field>
+			<field name="code">model._cron_export_log_email_to_hubspot()</field>
+			<field name="interval_number">95</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+		<record id="import_product_to_hubspot" model="ir.cron">
+			<field name="name">Import Products From Hubspot</field>
+			<field name="model_id" ref="model_product_template" />
+			<field name="state">code</field>
+			<field name="code">model._cron_import_products_from_hubspot()</field>
+			<field name="interval_number">155</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+		
+
+		
+
+		<record id="import_quote_to_hubspot" model="ir.cron">
+			<field name="name">Import Quotes From Hubspot</field>
+			<field name="model_id" ref="model_sale_order" />
+			<field name="state">code</field>
+			<field name="code">model._cron_import_quotes_from_hubspot()</field>
+			<field name="interval_number">155</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+       
+
+		<record id="import_call_to_hubspot" model="ir.cron">
+			<field name="name">Import Calls From Hubspot</field>
+			<field name="model_id" ref="model_mail_activity" />
+			<field name="state">code</field>
+			<field name="code">model._cron_import_call_from_hubspot()</field>
+			<field name="interval_number">155</field>
+			<field name="interval_type">minutes</field>
+			<!-- <field name="numbercall">-1</field>
+			<field name="doall" eval="False" /> -->
+			<field name="active" eval="False" />
+		</record>
+
+
+	</data>
+</odoo>

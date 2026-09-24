@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="hubspot.InstanceOverview">
+        <div class="o_hs_ov" t-att-data-key="this.recordKey">
+            <div t-if="!this.props.record.resId" class="o_hs_ov_empty">
+                <i class="oi me-2" data-icon="info"/>Save the instance to see its synchronization overview.
+            </div>
+
+            <!-- KPI cards: counts of HubSpot-linked records + records synced today ######-->
+            <div t-elif="this.props.mode === 'kpis'" class="o_hs_ov_kpis">
+                <t t-if="this.state.data">
+                    <t t-foreach="this.state.data.kpis" t-as="kpi" t-key="kpi.key">
+                        <div t-attf-class="o_hs_ov_kpi o_hs_ov_kpi_{{ kpi.key }}" t-on-click="() => this.openKpi(kpi)">
+                            <div class="o_hs_ov_kpi_icon"><i class="oi" t-att-data-icon="this.kpiIcon(kpi.key)"/></div>
+                            <div class="min-w-0">
+                                <div class="o_hs_ov_kpi_label"><t t-out="kpi.label"/></div>
+                                <div class="o_hs_ov_kpi_value"><t t-out="this.formatNumber(kpi.count)"/></div>
+                                <div class="o_hs_ov_kpi_sub">
+                                    <i class="oi" data-icon="arrow_upward"/>
+                                    <t t-out="kpi.synced_today"/> synced today
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+                <div t-else="" class="o_hs_ov_empty"><i class="oi oi-spin me-2" data-icon="progress_activity"/>Loading...</div>
+            </div>
+
+            <!-- Recent activity: each synced record with its details ######-->
+            <div t-else="" class="o_hs_ov_activity">
+                <div class="o_hs_ov_head">
+                    <div>
+                        <div class="o_hs_ov_title"><i class="oi me-2" data-icon="history"/><t t-out="this.props.title or 'Recent Synchronization Activity'"/></div>
+                        <div t-if="this.props.subtitle" class="o_hs_ov_subtitle"><t t-out="this.props.subtitle"/></div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span t-if="this.state.data" class="o_hs_ov_pill success"><t t-out="this.state.data.success_count"/> ok</span>
+                        <span t-if="this.state.data and this.state.data.failed_count" class="o_hs_ov_pill failed"><t t-out="this.state.data.failed_count"/> failed</span>
+                        <button class="btn btn-link btn-sm p-0" title="Refresh" t-on-click="() => this.load()">
+                            <i t-attf-class="oi {{ this.state.loading ? 'oi-spin' : '' }}" data-icon="refresh"/>
+                        </button>
+                        <a href="#" class="o_hs_ov_link" t-on-click.prevent="() => this.openAllActivity()">View all <i class="oi" data-icon="arrow_forward"/></a>
+                    </div>
+                </div>
+                <div t-if="this.state.data and !this.state.data.activity.length" class="o_hs_ov_empty">
+                    <i class="oi me-2" data-icon="inbox"/>No synchronization activity yet.
+                </div>
+                <t t-if="this.state.data">
+                    <t t-foreach="this.state.data.activity" t-as="log" t-key="log.id">
+                        <div t-attf-class="o_hs_ov_row {{ log.status }}" t-on-click="() => this.openActivity(log)">
+                            <span t-attf-class="o_hs_ov_dot {{ log.status }}"><i class="oi" t-att-data-icon="this.statusIcon(log.status)"/></span>
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <span class="fw-semibold"><t t-out="log.operation_label"/></span>
+                                    <span t-if="log.record_action" class="o_hs_ov_tag"><t t-out="this.recordActionLabels[log.record_action]"/></span>
+                                </div>
+                                <div t-if="log.record_name" class="o_hs_ov_record">
+                                    <i class="oi me-1" data-icon="database"/><t t-out="log.record_name"/>
+                                    <span t-if="log.hubspot_record_id" class="text-muted"> · HubSpot ID <t t-out="log.hubspot_record_id"/></span>
+                                </div>
+                                <div t-else="" class="o_hs_ov_desc"><t t-out="log.hubspot_description"/></div>
+                            </div>
+                            <span class="o_hs_ov_time"><t t-out="this.formatDate(log.hubspot_datetime)"/></span>
+                        </div>
+                    </t>
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>

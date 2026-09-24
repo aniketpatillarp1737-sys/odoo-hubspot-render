@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="hubspot_message_wizard_form">
+			<field name="name">hubspot.response.message.wizard.form</field>
+			<field name="model">hubspot.message.wizard</field>
+			<field name="arch" type="xml">
+				<form string="Hubspot" >
+					<field name="message"/>
+					<footer>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+				</form>
+			</field>
+		</record>
+		<record id="action_hubspot_message" model="ir.actions.act_window">
+            <field name="name">Hubspot.response.message</field>
+            <field name="res_model">hubspot.message.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+    </data>
+</openerp>

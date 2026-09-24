@@ -1,0 +1,22 @@
+<odoo>
+    <data>
+        <!-- Service Product -->
+        <record id="service_product_fee" model="product.template">
+            <field name="name">Fees</field>
+            <field name="type">service</field>
+            
+            <field name="description">This is a service fee product description.</field>
+         
+        </record>
+
+        <record id="service_discount_fee" model="product.template">
+            <field name="name">Discount</field>
+            <field name="type">service</field>
+            
+            <field name="description">This is a service discount product description.</field>
+         
+        </record>
+        
+   
+    </data>
+</odoo>
