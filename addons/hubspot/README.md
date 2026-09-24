@@ -22,7 +22,7 @@ Sync contacts, companies, deals, activities, and more between Odoo and HubSpot i
 
 ## Requirements
 
-- **Odoo** 20.0
+- **Odoo** 18.0
 - Python packages (install via pip):
 
 ```bash
